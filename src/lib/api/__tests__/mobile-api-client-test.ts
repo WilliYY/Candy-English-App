@@ -239,6 +239,65 @@ describe("MobileApiClient", () => {
     expect(module.items[0]?.status).toBe("SUBMITTED");
   });
 
+  it("loads a protected student lesson with materials", async () => {
+    const memory = createMemoryStore(sessionPayload("access-lesson"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/lessons/lesson%2F1",
+      );
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-lesson",
+      );
+
+      return jsonResponse(200, {
+        lesson: {
+          description: "Practice introductions.",
+          homeworks: [
+            {
+              dueDate: "2026-08-05T12:00:00.000Z",
+              id: "homework-1",
+              submissionStatus: null,
+              title: "Introduce yourself",
+            },
+          ],
+          id: "lesson/1",
+          materials: [
+            {
+              content: null,
+              id: "material-1",
+              title: "Pronunciation guide",
+              type: "LINK",
+              url: "https://example.com/guide",
+            },
+          ],
+          scheduledAt: "2026-08-01T12:00:00.000Z",
+          teacherName: "Candy Teacher",
+          title: "Introductions",
+          vocabularyItems: [
+            {
+              example: "Nice to meet you.",
+              id: "word-1",
+              term: "meet",
+              translation: "conhecer",
+            },
+          ],
+        },
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    const lesson = await client.getLesson("lesson/1");
+
+    expect(lesson.title).toBe("Introductions");
+    expect(lesson.materials[0]?.type).toBe("LINK");
+  });
+
   it("loads an authorized student homework detail", async () => {
     const memory = createMemoryStore(sessionPayload("access-homework"));
     const fetcher = jest.fn(async (url: string, init?: RequestInit) => {

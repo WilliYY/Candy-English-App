@@ -43,7 +43,7 @@
 
 - [x] Contrato e endpoint de bootstrap/resumo.
 - [x] Tela de resumo com estados completos.
-- [ ] Aulas e materiais protegidos.
+- [x] Aulas e materiais protegidos.
 - [ ] Download e cache seguro de arquivos.
 - [x] Lista e detalhe de homework.
 - [x] Rascunho e envio idempotente de homework.

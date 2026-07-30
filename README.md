@@ -9,9 +9,9 @@ dados do projeto web Candy English.
 ## Status
 
 Autenticação segura, sessão persistente, painéis por role, módulos nativos,
-mensagens e homeworks `TEXT`/interativas com rascunho, desenho, listening e
-entrega já estão implementados. A implementação das demais operações de escrita
-segue incrementalmente conforme
+mensagens, aulas com materiais/vocabulário e homeworks `TEXT`/interativas com
+rascunho, desenho, listening e entrega já estão implementados. A implementação
+das demais operações de escrita segue incrementalmente conforme
 [`docs/spec.md`](docs/spec.md) e [`tasks/plan.md`](tasks/plan.md).
 
 ## Documentação

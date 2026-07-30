@@ -102,6 +102,58 @@ const moduleResponseSchema = z
 
 export type MobileModuleData = z.infer<typeof moduleDataSchema>;
 
+const lessonSchema = z
+  .object({
+    description: z.string().nullable(),
+    homeworks: z.array(
+      z
+        .object({
+          dueDate: z.string().datetime().nullable(),
+          id: z.string().min(1),
+          submissionStatus: z
+            .enum(["DRAFT", "SUBMITTED", "RETURNED", "REVIEWED"])
+            .nullable(),
+          title: z.string().min(1),
+        })
+        .strict(),
+    ),
+    id: z.string().min(1),
+    materials: z.array(
+      z
+        .object({
+          content: z.string().nullable(),
+          id: z.string().min(1),
+          title: z.string().min(1),
+          type: z.enum(["LINK", "TEXT"]),
+          url: z.string().url().nullable(),
+        })
+        .strict(),
+    ),
+    scheduledAt: z.string().datetime().nullable(),
+    teacherName: z.string().min(1),
+    title: z.string().min(1),
+    vocabularyItems: z.array(
+      z
+        .object({
+          example: z.string().nullable(),
+          id: z.string().min(1),
+          term: z.string().min(1),
+          translation: z.string().min(1),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+
+const lessonResponseSchema = z
+  .object({
+    lesson: lessonSchema,
+    ok: z.literal(true),
+  })
+  .strict();
+
+export type MobileLesson = z.infer<typeof lessonSchema>;
+
 const chatThreadSchema = z
   .object({
     id: z.string().min(1),
@@ -483,6 +535,24 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.data;
+    },
+
+    async getLesson(lessonId: string): Promise<MobileLesson> {
+      const response = await authenticatedRequest(
+        `/lessons/${encodeURIComponent(lessonId)}`,
+        { method: "GET" },
+      );
+      const parsed = lessonResponseSchema.safeParse(await response.json());
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data.lesson;
     },
 
     async getHomework(homeworkId: string): Promise<MobileHomework> {
