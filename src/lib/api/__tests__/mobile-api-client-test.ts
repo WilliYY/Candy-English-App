@@ -257,6 +257,7 @@ describe("MobileApiClient", () => {
           feedback: null,
           id: "homework/1",
           instructions: "Answer in English.",
+          interactiveAnswers: [],
           interactiveFields: [],
           kind: "TEXT",
           lessonTitle: "Lesson 1",
@@ -313,6 +314,78 @@ describe("MobileApiClient", () => {
     ).resolves.toMatchObject({
       ok: true,
       submittedAt: "2026-07-30T14:00:00.000Z",
+    });
+  });
+
+  it("saves and submits interactive answers through idempotent methods", async () => {
+    const memory = createMemoryStore(sessionPayload("access-interactive"));
+    const methods: string[] = [];
+    const answers = [{ fieldId: "field-1", value: "Hello" }];
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/homeworks/homework-1/interactive",
+      );
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-interactive",
+      );
+      expect(JSON.parse(String(init?.body))).toEqual({ answers });
+      methods.push(String(init?.method));
+
+      return jsonResponse(200, {
+        message:
+          init?.method === "PUT"
+            ? "Rascunho salvo."
+            : "Homework entregue com sucesso.",
+        ok: true,
+        status: init?.method === "PUT" ? "DRAFT" : "SUBMITTED",
+        ...(init?.method === "POST"
+          ? { submittedAt: "2026-07-30T14:00:00.000Z" }
+          : {}),
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(
+      client.saveInteractiveHomeworkDraft("homework-1", answers),
+    ).resolves.toMatchObject({ status: "DRAFT" });
+    await expect(
+      client.submitInteractiveHomework("homework-1", answers),
+    ).resolves.toMatchObject({ status: "SUBMITTED" });
+    expect(methods).toEqual(["PUT", "POST"]);
+  });
+
+  it("creates a protected listening source after validating the session", async () => {
+    const memory = createMemoryStore(sessionPayload("access-listening"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe("https://candy.example/api/mobile/v1/auth/me");
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-listening",
+      );
+
+      return jsonResponse(200, {
+        ok: true,
+        user: sessionPayload().user,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(
+      client.getListeningAudioSource("homework/1", "field/2", "slow"),
+    ).resolves.toEqual({
+      headers: { Authorization: "Bearer access-listening" },
+      uri:
+        "https://candy.example/api/mobile/v1/homeworks/homework%2F1/" +
+        "listening/field%2F2?speed=slow",
     });
   });
 

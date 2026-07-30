@@ -155,12 +155,22 @@ const homeworkSchema = z
     feedback: z.string().nullable(),
     id: z.string().min(1),
     instructions: z.string().nullable(),
+    interactiveAnswers: z.array(
+      z
+        .object({
+          fieldId: z.string().min(1),
+          value: z.string(),
+        })
+        .strict(),
+    ),
     interactiveFields: z.array(
       z
         .object({
           id: z.string().min(1),
           label: z.string().nullable(),
+          placeholder: z.string().nullable(),
           required: z.boolean(),
+          sortOrder: z.number().int(),
           type: z.enum([
             "TINY_TEXT",
             "SHORT_TEXT",
@@ -207,6 +217,16 @@ const homeworkSubmitResponseSchema = z
   .strict();
 
 export type MobileHomework = z.infer<typeof homeworkSchema>;
+export type MobileInteractiveAnswer = MobileHomework["interactiveAnswers"][number];
+
+const interactiveHomeworkActionResponseSchema = z
+  .object({
+    message: z.string().min(1),
+    ok: z.literal(true),
+    status: z.enum(["DRAFT", "SUBMITTED"]),
+    submittedAt: z.string().datetime().optional(),
+  })
+  .strict();
 
 const errorResponseSchema = z.object({
   error: z.object({
@@ -504,6 +524,84 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data;
+    },
+
+    async saveInteractiveHomeworkDraft(
+      homeworkId: string,
+      answers: MobileInteractiveAnswer[],
+    ) {
+      const response = await authenticatedRequest(
+        `/homeworks/${encodeURIComponent(homeworkId)}/interactive`,
+        {
+          body: JSON.stringify({ answers }),
+          method: "PUT",
+        },
+      );
+      const parsed = interactiveHomeworkActionResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta invÃ¡lida.",
+          502,
+        );
+      }
+
+      return parsed.data;
+    },
+
+    async submitInteractiveHomework(
+      homeworkId: string,
+      answers: MobileInteractiveAnswer[],
+    ) {
+      const response = await authenticatedRequest(
+        `/homeworks/${encodeURIComponent(homeworkId)}/interactive`,
+        {
+          body: JSON.stringify({ answers }),
+          method: "POST",
+        },
+      );
+      const parsed = interactiveHomeworkActionResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta invÃ¡lida.",
+          502,
+        );
+      }
+
+      return parsed.data;
+    },
+
+    async getListeningAudioSource(
+      homeworkId: string,
+      fieldId: string,
+      speed: "normal" | "slow",
+    ) {
+      await authenticatedRequest("/auth/me", { method: "GET" });
+      const session = await options.sessionStore.get();
+
+      if (!session?.tokens.accessToken) {
+        throw new ApiError(
+          "SESSION_EXPIRED",
+          "Sua sessÃ£o expirou. Entre novamente.",
+          401,
+        );
+      }
+
+      return {
+        headers: {
+          Authorization: `Bearer ${session.tokens.accessToken}`,
+        },
+        uri: `${baseUrl}/api/mobile/v1/homeworks/${encodeURIComponent(
+          homeworkId,
+        )}/listening/${encodeURIComponent(fieldId)}?speed=${speed}`,
+      };
     },
 
     async getChatThreads(): Promise<MobileChatThread[]> {
