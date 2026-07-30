@@ -46,8 +46,8 @@
 - [ ] Aulas e materiais protegidos.
 - [ ] Download e cache seguro de arquivos.
 - [x] Lista e detalhe de homework.
-- [ ] Rascunho e envio idempotente de homework.
-- [ ] Renderização dos campos interativos suportados.
+- [x] Rascunho e envio idempotente de homework.
+- [x] Renderização dos campos interativos suportados.
 - [x] Feedback de homework.
 - [x] Mensagens com teacher vinculada.
 - [ ] Contratos protegidos.

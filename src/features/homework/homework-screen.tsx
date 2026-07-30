@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { InteractiveHomeworkForm } from "@/features/homework/interactive-homework-form";
 import { getMobileApi } from "@/lib/api/mobile-api";
 import { colors, radii, spacing, typeScale } from "@/theme/tokens";
 
@@ -263,14 +264,7 @@ export function HomeworkScreen({
                   </Pressable>
                 </View>
               ) : (
-                <View style={styles.card}>
-                  <Text style={styles.cardLabel}>ATIVIDADE INTERATIVA</Text>
-                  <Text style={styles.cardText}>
-                    Esta atividade tem {data.interactiveFields.length} campo(s)
-                    interativo(s). A edição nativa será disponibilizada na
-                    próxima etapa do app.
-                  </Text>
-                </View>
+                <InteractiveHomeworkForm homework={data} />
               )}
 
               {data.feedback ? (
