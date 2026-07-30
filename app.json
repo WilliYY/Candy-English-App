@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Candy English",
+    "slug": "candy-english-app",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/app-icon.png",
+    "scheme": "candyenglish",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#2C1338",
+        "foregroundImage": "./assets/images/app-icon-foreground.png",
+        "monochromeImage": "./assets/images/app-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FEFBFA",
+          "image": "./assets/images/candy-logo.png",
+          "imageWidth": 280
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

@@ -21,3 +21,33 @@ Especificação aprovada. Implementação incremental em andamento conforme
 ## Repositório do backend e site
 
 <https://github.com/WilliYY/Candy-English>
+
+## Executar o aplicativo
+
+Requisitos: Node.js 22.13 ou superior e npm.
+
+```powershell
+npm.cmd ci
+npm.cmd start
+```
+
+Atalhos:
+
+```powershell
+npm.cmd run android
+npm.cmd run ios
+npm.cmd run web
+```
+
+## Validar
+
+```powershell
+npm.cmd test
+npm.cmd run typecheck
+npm.cmd run lint
+npm.cmd run doctor
+npx.cmd expo install --check
+```
+
+O projeto usa Expo Router em `src/app`, TypeScript estrito, Jest Expo e os
+assets reais da marca Candy English.

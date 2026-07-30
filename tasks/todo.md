@@ -8,13 +8,13 @@
 
 ## Fundação
 
-- [ ] Inicializar Git do aplicativo.
+- [x] Inicializar Git do aplicativo.
   - Aceite: repositório local com `.gitignore`, sem segredos ou builds.
   - Verificação: `git status --short --branch`.
-- [ ] Criar Expo TypeScript com Expo Router.
+- [x] Criar Expo TypeScript com Expo Router.
   - Aceite: tela inicial abre em development build.
   - Verificação: `npx.cmd expo-doctor`.
-- [ ] Configurar lint, typecheck e Jest Expo.
+- [x] Configurar lint, typecheck e Jest Expo.
   - Aceite: os três comandos executam e passam.
   - Verificação: `npm.cmd run lint`, `npm.cmd run typecheck`,
     `npm.cmd run test`.

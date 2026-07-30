@@ -1,0 +1,182 @@
+import { StyleSheet } from "react-native";
+
+import { colors, radii, spacing, typeScale } from "@/theme/tokens";
+
+export const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
+  content: {
+    alignSelf: "center",
+    flexGrow: 1,
+    maxWidth: 520,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    width: "100%",
+  },
+  brandRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  logo: {
+    height: 52,
+    width: 156,
+  },
+  onlinePill: {
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  onlineDot: {
+    backgroundColor: colors.success,
+    borderRadius: radii.pill,
+    height: 7,
+    width: 7,
+  },
+  onlineText: {
+    color: colors.textMuted,
+    fontSize: typeScale.caption,
+    fontWeight: "700",
+  },
+  hero: {
+    marginTop: spacing.xl,
+  },
+  eyebrow: {
+    color: colors.focus,
+    fontSize: typeScale.caption,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+  },
+  title: {
+    color: colors.brandDeep,
+    fontSize: typeScale.title,
+    fontWeight: "900",
+    letterSpacing: -1.2,
+    lineHeight: 42,
+    marginTop: spacing.xs,
+  },
+  description: {
+    color: colors.textMuted,
+    fontSize: typeScale.lead,
+    lineHeight: 27,
+    marginTop: spacing.sm,
+  },
+  rolePath: {
+    gap: spacing.md,
+    marginTop: spacing.xl,
+    paddingLeft: spacing.xs,
+    position: "relative",
+  },
+  pathLine: {
+    backgroundColor: colors.coral,
+    bottom: 24,
+    left: 27,
+    position: "absolute",
+    top: 24,
+    width: 3,
+  },
+  roleRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  roleMarker: {
+    alignItems: "center",
+    backgroundColor: colors.brand,
+    borderColor: colors.background,
+    borderRadius: radii.md,
+    borderWidth: 4,
+    height: 44,
+    justifyContent: "center",
+    width: 44,
+  },
+  roleMarkerText: {
+    color: colors.surface,
+    fontSize: typeScale.body,
+    fontWeight: "900",
+  },
+  roleCopy: {
+    flex: 1,
+  },
+  roleTitle: {
+    color: colors.text,
+    fontSize: typeScale.body,
+    fontWeight: "800",
+  },
+  roleDetail: {
+    color: colors.textMuted,
+    fontSize: 14,
+    marginTop: 2,
+  },
+  cattyStage: {
+    alignItems: "center",
+    backgroundColor: colors.coral,
+    borderRadius: radii.lg,
+    flexDirection: "row",
+    marginTop: spacing.xl,
+    minHeight: 112,
+    overflow: "hidden",
+    paddingLeft: spacing.lg,
+  },
+  cattyCopy: {
+    flex: 1,
+    paddingVertical: spacing.md,
+  },
+  cattyLabel: {
+    color: colors.brand,
+    fontSize: typeScale.caption,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+  },
+  cattyText: {
+    color: colors.text,
+    fontSize: 15,
+    lineHeight: 21,
+    marginTop: spacing.xs,
+  },
+  catty: {
+    alignSelf: "flex-end",
+    height: 118,
+    width: 112,
+  },
+  primaryButton: {
+    alignItems: "center",
+    backgroundColor: colors.brand,
+    borderRadius: radii.md,
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: spacing.lg,
+    minHeight: 56,
+    paddingHorizontal: spacing.lg,
+  },
+  primaryButtonPressed: {
+    backgroundColor: colors.brandDeep,
+    transform: [{ scale: 0.99 }],
+  },
+  primaryButtonText: {
+    color: colors.surface,
+    flex: 1,
+    fontSize: typeScale.body,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  buttonArrow: {
+    color: colors.energy,
+    fontSize: 24,
+    fontWeight: "700",
+  },
+  securityNote: {
+    color: colors.textMuted,
+    fontSize: typeScale.caption,
+    marginTop: spacing.sm,
+    textAlign: "center",
+  },
+});
