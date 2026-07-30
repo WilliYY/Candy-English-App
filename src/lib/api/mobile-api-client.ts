@@ -147,6 +147,67 @@ const chatSendResponseSchema = z
 export type MobileChatThread = z.infer<typeof chatThreadSchema>;
 export type MobileChatMessage = z.infer<typeof chatMessageSchema>;
 
+const homeworkSchema = z
+  .object({
+    answer: z.string(),
+    canSubmit: z.boolean(),
+    dueDate: z.string().datetime().nullable(),
+    feedback: z.string().nullable(),
+    id: z.string().min(1),
+    instructions: z.string().nullable(),
+    interactiveFields: z.array(
+      z
+        .object({
+          id: z.string().min(1),
+          label: z.string().nullable(),
+          required: z.boolean(),
+          type: z.enum([
+            "TINY_TEXT",
+            "SHORT_TEXT",
+            "LONG_TEXT",
+            "CHECKBOX",
+            "DRAWING",
+            "LISTENING",
+          ]),
+        })
+        .strict(),
+    ),
+    kind: z.enum(["TEXT", "INTERACTIVE"]),
+    lessonTitle: z.string().min(1),
+    questions: z.array(
+      z
+        .object({
+          id: z.string().min(1),
+          prompt: z.string(),
+        })
+        .strict(),
+    ),
+    reviewedAt: z.string().datetime().nullable(),
+    status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+    submissionStatus: z
+      .enum(["DRAFT", "SUBMITTED", "RETURNED", "REVIEWED"])
+      .nullable(),
+    title: z.string().min(1),
+  })
+  .strict();
+
+const homeworkResponseSchema = z
+  .object({
+    homework: homeworkSchema,
+    ok: z.literal(true),
+  })
+  .strict();
+
+const homeworkSubmitResponseSchema = z
+  .object({
+    message: z.string().min(1),
+    ok: z.literal(true),
+    submittedAt: z.string().datetime(),
+  })
+  .strict();
+
+export type MobileHomework = z.infer<typeof homeworkSchema>;
+
 const errorResponseSchema = z.object({
   error: z.object({
     code: z.string(),
@@ -402,6 +463,47 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.data;
+    },
+
+    async getHomework(homeworkId: string): Promise<MobileHomework> {
+      const response = await authenticatedRequest(
+        `/homeworks/${encodeURIComponent(homeworkId)}`,
+        { method: "GET" },
+      );
+      const parsed = homeworkResponseSchema.safeParse(await response.json());
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta invÃ¡lida.",
+          502,
+        );
+      }
+
+      return parsed.data.homework;
+    },
+
+    async submitHomework(homeworkId: string, answer: string) {
+      const response = await authenticatedRequest(
+        `/homeworks/${encodeURIComponent(homeworkId)}/submit`,
+        {
+          body: JSON.stringify({ answer }),
+          method: "POST",
+        },
+      );
+      const parsed = homeworkSubmitResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta invÃ¡lida.",
+          502,
+        );
+      }
+
+      return parsed.data;
     },
 
     async getChatThreads(): Promise<MobileChatThread[]> {

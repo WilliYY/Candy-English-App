@@ -15,6 +15,7 @@ import { colors, radii, spacing, typeScale } from "@/theme/tokens";
 
 type ModuleScreenProps = {
   onBack: () => void;
+  onOpenItem?: (item: MobileModuleData["items"][number]) => void;
   slug: string;
 };
 
@@ -40,7 +41,11 @@ function formatAmount(value?: number) {
   }).format(value / 100);
 }
 
-export function ModuleScreen({ onBack, slug }: ModuleScreenProps) {
+export function ModuleScreen({
+  onBack,
+  onOpenItem,
+  slug,
+}: ModuleScreenProps) {
   const moduleQuery = useQuery({
     queryFn: () => getMobileApi().getModule(slug),
     queryKey: ["mobile-module", slug],
@@ -102,8 +107,8 @@ export function ModuleScreen({ onBack, slug }: ModuleScreenProps) {
             const date = formatDate(item.occurredAt);
             const amount = formatAmount(item.amountCents);
 
-            return (
-              <View key={item.id} style={styles.item}>
+            const itemContent = (
+              <>
                 <View style={styles.itemTop}>
                   <Text style={styles.itemTitle}>{item.title}</Text>
                   {item.status ? (
@@ -122,6 +127,26 @@ export function ModuleScreen({ onBack, slug }: ModuleScreenProps) {
                   ) : null}
                   {date ? <Text style={styles.date}>{date}</Text> : null}
                 </View>
+              </>
+            );
+
+            return onOpenItem ? (
+              <Pressable
+                accessibilityLabel={`Abrir ${item.title}`}
+                accessibilityRole="button"
+                key={item.id}
+                onPress={() => onOpenItem(item)}
+                style={({ pressed }) => [
+                  styles.item,
+                  pressed ? styles.itemPressed : null,
+                ]}
+              >
+                {itemContent}
+                <Text style={styles.openHint}>Abrir detalhes →</Text>
+              </Pressable>
+            ) : (
+              <View key={item.id} style={styles.item}>
+                {itemContent}
               </View>
             );
           })}
@@ -213,6 +238,9 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     paddingVertical: spacing.md,
   },
+  itemPressed: {
+    opacity: 0.68,
+  },
   itemTop: {
     alignItems: "flex-start",
     flexDirection: "row",
@@ -260,5 +288,11 @@ const styles = StyleSheet.create({
   date: {
     color: colors.textMuted,
     fontSize: typeScale.caption,
+  },
+  openHint: {
+    color: colors.brand,
+    fontSize: typeScale.caption,
+    fontWeight: "900",
+    marginTop: spacing.xxs,
   },
 });

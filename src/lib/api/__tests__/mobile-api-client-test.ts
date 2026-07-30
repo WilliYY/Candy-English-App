@@ -239,6 +239,83 @@ describe("MobileApiClient", () => {
     expect(module.items[0]?.status).toBe("SUBMITTED");
   });
 
+  it("loads an authorized student homework detail", async () => {
+    const memory = createMemoryStore(sessionPayload("access-homework"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/homeworks/homework%2F1",
+      );
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-homework",
+      );
+
+      return jsonResponse(200, {
+        homework: {
+          answer: "My first answer",
+          canSubmit: true,
+          dueDate: "2026-08-01T12:00:00.000Z",
+          feedback: null,
+          id: "homework/1",
+          instructions: "Answer in English.",
+          interactiveFields: [],
+          kind: "TEXT",
+          lessonTitle: "Lesson 1",
+          questions: [{ id: "question-1", prompt: "How are you?" }],
+          reviewedAt: null,
+          status: "PUBLISHED",
+          submissionStatus: "SUBMITTED",
+          title: "Introductions",
+        },
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    const homework = await client.getHomework("homework/1");
+
+    expect(homework.kind).toBe("TEXT");
+    expect(homework.answer).toBe("My first answer");
+  });
+
+  it("submits a text homework through the authenticated endpoint", async () => {
+    const memory = createMemoryStore(sessionPayload("access-homework"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/homeworks/homework-1/submit",
+      );
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-homework",
+      );
+      expect(JSON.parse(String(init?.body))).toEqual({
+        answer: "I am great!",
+      });
+
+      return jsonResponse(200, {
+        message: "Homework enviada com sucesso.",
+        ok: true,
+        submittedAt: "2026-07-30T14:00:00.000Z",
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(
+      client.submitHomework("homework-1", "I am great!"),
+    ).resolves.toMatchObject({
+      ok: true,
+      submittedAt: "2026-07-30T14:00:00.000Z",
+    });
+  });
+
   it("sends chat messages only through an authenticated pair", async () => {
     const memory = createMemoryStore(sessionPayload("access-chat"));
     const fetcher = jest.fn(async (url: string, init?: RequestInit) => {

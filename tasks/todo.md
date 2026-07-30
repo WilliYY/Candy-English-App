@@ -45,10 +45,10 @@
 - [x] Tela de resumo com estados completos.
 - [ ] Aulas e materiais protegidos.
 - [ ] Download e cache seguro de arquivos.
-- [ ] Lista e detalhe de homework.
+- [x] Lista e detalhe de homework.
 - [ ] Rascunho e envio idempotente de homework.
 - [ ] Renderização dos campos interativos suportados.
-- [ ] Feedback de homework.
+- [x] Feedback de homework.
 - [x] Mensagens com teacher vinculada.
 - [ ] Contratos protegidos.
 - [ ] Perfil e avatar.
