@@ -9,9 +9,17 @@ export default function ModuleRoute() {
   const { user } = useAuth();
   const canOpenItem =
     user?.role === "STUDENT" &&
-    (slug === "homeworks" || slug === "lessons");
+    (slug === "contracts" || slug === "homeworks" || slug === "lessons");
 
   function openItem(item: { id: string }) {
+    if (slug === "contracts") {
+      router.push({
+        params: { contractId: item.id },
+        pathname: "/contract/[contractId]",
+      });
+      return;
+    }
+
     if (slug === "lessons") {
       router.push({
         params: { lessonId: item.id },

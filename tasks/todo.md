@@ -44,13 +44,13 @@
 - [x] Contrato e endpoint de bootstrap/resumo.
 - [x] Tela de resumo com estados completos.
 - [x] Aulas e materiais protegidos.
-- [ ] Download e cache seguro de arquivos.
+- [x] Download e cache seguro de arquivos.
 - [x] Lista e detalhe de homework.
 - [x] Rascunho e envio idempotente de homework.
 - [x] Renderização dos campos interativos suportados.
 - [x] Feedback de homework.
 - [x] Mensagens com teacher vinculada.
-- [ ] Contratos protegidos.
+- [x] Contratos protegidos.
 - [ ] Perfil e avatar.
 - [ ] Candy XP, ranking e atividades.
 - [ ] Submissão Candy XP.
@@ -108,7 +108,7 @@
 - [ ] Detectar conflito de rascunho.
 - [ ] Retry idempotente de upload.
 - [ ] Registrar e remover push tokens inválidos.
-- [ ] Limpar cache, tokens e temporários no logout.
+- [x] Limpar cache, tokens e temporários no logout.
 - [ ] Testar perda e retorno de conexão.
 
 ## Entrega
