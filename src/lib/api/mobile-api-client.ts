@@ -7,6 +7,18 @@ import {
   type AuthSessionStore,
   type AuthUser,
 } from "@/lib/auth/auth-session";
+import {
+  avatarUploadResponseSchema,
+  studentProfileResponseSchema,
+  studentProfileUpdateResponseSchema,
+  type MobileStudentProfile,
+  type MobileStudentProfileUpdate,
+} from "@/lib/api/profile-contracts";
+
+export type {
+  MobileStudentProfile,
+  MobileStudentProfileUpdate,
+} from "@/lib/api/profile-contracts";
 
 type Fetcher = (url: string, init?: RequestInit) => Promise<Response>;
 
@@ -370,7 +382,7 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
     headers.set("accept", "application/json");
     headers.set("x-request-id", createRequestId());
 
-    if (init.body) {
+    if (typeof init.body === "string" && !headers.has("content-type")) {
       headers.set("content-type", "application/json");
     }
 
@@ -514,6 +526,98 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.user;
+    },
+
+    async getStudentProfile(): Promise<MobileStudentProfile> {
+      const response = await authenticatedRequest("/profile", {
+        method: "GET",
+      });
+      const parsed = studentProfileResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data.profile;
+    },
+
+    async updateStudentProfile(input: MobileStudentProfileUpdate) {
+      const response = await authenticatedRequest("/profile", {
+        body: JSON.stringify(input),
+        method: "PATCH",
+      });
+      const parsed = studentProfileUpdateResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data;
+    },
+
+    async getStudentAvatarSource() {
+      await authenticatedRequest("/auth/me", { method: "GET" });
+      const session = await options.sessionStore.get();
+
+      if (!session?.tokens.accessToken) {
+        throw new ApiError(
+          "SESSION_EXPIRED",
+          "Sua sessão expirou. Entre novamente.",
+          401,
+        );
+      }
+
+      return {
+        headers: {
+          Authorization: `Bearer ${session.tokens.accessToken}`,
+        },
+        uri: `${baseUrl}/api/mobile/v1/profile/avatar`,
+      };
+    },
+
+    async uploadStudentAvatar(input: {
+      mimeType: "image/jpeg";
+      name: string;
+      uri: string;
+    }) {
+      const formData = new FormData();
+      formData.append(
+        "avatar",
+        {
+          name: input.name,
+          type: input.mimeType,
+          uri: input.uri,
+        } as unknown as Blob,
+      );
+      const response = await authenticatedRequest("/profile/avatar", {
+        body: formData,
+        method: "POST",
+      });
+      const parsed = avatarUploadResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data;
     },
 
     async getOverview(): Promise<MobileOverview> {

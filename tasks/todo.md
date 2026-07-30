@@ -51,7 +51,7 @@
 - [x] Feedback de homework.
 - [x] Mensagens com teacher vinculada.
 - [x] Contratos protegidos.
-- [ ] Perfil e avatar.
+- [x] Perfil e avatar.
 - [ ] Candy XP, ranking e atividades.
 - [ ] Submissão Candy XP.
 - [ ] Catty autenticada.

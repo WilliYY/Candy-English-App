@@ -477,6 +477,121 @@ describe("MobileApiClient", () => {
     expect(source.uri).not.toContain("access-contract");
   });
 
+  it("loads and updates the student profile through authenticated JSON", async () => {
+    const memory = createMemoryStore(sessionPayload("access-profile"));
+    const profile = {
+      address: null,
+      avatarRevision: null,
+      birthDate: "2010-05-20",
+      email: "student@candy.example",
+      gender: null,
+      guardianDocument: null,
+      hasAvatar: false,
+      level: "A2",
+      motherName: null,
+      motherPhone: null,
+      name: "Candy Student",
+      notes: null,
+      phone: null,
+      studentPhone: null,
+      studentPhoneAlt: null,
+    };
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe("https://candy.example/api/mobile/v1/profile");
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-profile",
+      );
+
+      if (init?.method === "PATCH") {
+        expect(new Headers(init.headers).get("content-type")).toBe(
+          "application/json",
+        );
+        expect(JSON.parse(String(init.body))).toMatchObject({
+          name: "Candy Student Updated",
+        });
+        return jsonResponse(200, {
+          message: "Perfil atualizado com sucesso.",
+          ok: true,
+          profile: { ...profile, name: "Candy Student Updated" },
+        });
+      }
+
+      return jsonResponse(200, { ok: true, profile });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getStudentProfile()).resolves.toEqual(profile);
+    await expect(
+      client.updateStudentProfile({
+        name: "Candy Student Updated",
+      }),
+    ).resolves.toMatchObject({
+      profile: { name: "Candy Student Updated" },
+    });
+  });
+
+  it("uploads the avatar as multipart without exposing or overriding its boundary", async () => {
+    const memory = createMemoryStore(sessionPayload("access-avatar"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/profile/avatar",
+      );
+      const headers = new Headers(init?.headers);
+      expect(headers.get("authorization")).toBe("Bearer access-avatar");
+      expect(headers.get("content-type")).toBeNull();
+      expect(init?.body).toBeInstanceOf(FormData);
+
+      return jsonResponse(200, {
+        avatarRevision: "revision-2",
+        message: "Foto atualizada com sucesso.",
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(
+      client.uploadStudentAvatar({
+        mimeType: "image/jpeg",
+        name: "avatar.jpg",
+        uri: "file:///cache/avatar.jpg",
+      }),
+    ).resolves.toMatchObject({ avatarRevision: "revision-2" });
+  });
+
+  it("keeps the avatar token in headers and out of its URL", async () => {
+    const memory = createMemoryStore(sessionPayload("access-avatar-source"));
+    const fetcher = jest.fn(async () =>
+      jsonResponse(200, {
+        ok: true,
+        user: sessionPayload().user,
+      }),
+    );
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    const source = await client.getStudentAvatarSource();
+
+    expect(source).toEqual({
+      headers: { Authorization: "Bearer access-avatar-source" },
+      uri: "https://candy.example/api/mobile/v1/profile/avatar",
+    });
+    expect(source.uri).not.toContain("access-avatar-source");
+  });
+
   it("clears protected local data when signing out", async () => {
     const memory = createMemoryStore(sessionPayload("access-logout"));
     const onSessionCleared = jest.fn(async () => undefined);

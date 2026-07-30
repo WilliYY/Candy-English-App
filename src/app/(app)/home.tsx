@@ -20,6 +20,11 @@ export default function HomeRoute() {
           return;
         }
 
+        if (slug === "profile") {
+          router.push("/profile");
+          return;
+        }
+
         router.push({ pathname: "/module/[slug]", params: { slug } });
       }}
       onSignOut={signOut}

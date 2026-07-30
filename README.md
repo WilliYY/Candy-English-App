@@ -9,10 +9,11 @@ dados do projeto web Candy English.
 ## Status
 
 Autenticação segura, sessão persistente, painéis por role, módulos nativos,
-mensagens, aulas com materiais/vocabulário, contratos PDF protegidos e
-homeworks `TEXT`/interativas com rascunho, desenho, listening e entrega já estão
-implementados. Contratos usam download autenticado, cache temporário validado e
-limpeza no logout. A implementação das demais operações de escrita segue conforme
+mensagens, aulas com materiais/vocabulário, contratos PDF protegidos, perfil
+compartilhado com avatar otimizado e homeworks `TEXT`/interativas com rascunho,
+desenho, listening e entrega já estão implementados. Contratos usam download
+autenticado, cache temporário validado e limpeza no logout. A implementação das
+demais operações de escrita segue conforme
 [`docs/spec.md`](docs/spec.md) e [`tasks/plan.md`](tasks/plan.md).
 
 ## Documentação

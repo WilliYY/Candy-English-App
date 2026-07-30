@@ -33,6 +33,14 @@
         }
       ],
       "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permita que o Candy English acesse suas fotos para atualizar seu avatar.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
       "expo-audio",
       "expo-asset",
       "expo-sharing"

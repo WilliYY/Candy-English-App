@@ -12,11 +12,13 @@ import {
 import { getMobileApi } from "@/lib/api/mobile-api";
 import type { AuthUser } from "@/lib/auth/auth-session";
 import { secureSessionStore } from "@/lib/auth/secure-session-store";
+import { clearAvatarUploadTemps } from "@/lib/files/avatar-upload";
 import { clearProtectedContractCache } from "@/lib/files/protected-contract-cache";
 
 type AuthStatus = "loading" | "anonymous" | "authenticated";
 
 type AuthContextValue = {
+  refreshUser: () => Promise<AuthUser>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   status: AuthStatus;
@@ -53,6 +55,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       } catch {
         await Promise.allSettled([
           secureSessionStore.clear(),
+          clearAvatarUploadTemps(),
           clearProtectedContractCache(),
         ]);
         queryClient.clear();
@@ -77,6 +80,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setStatus("authenticated");
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const refreshedUser = await getMobileApi().getMe();
+    setUser(refreshedUser);
+    return refreshedUser;
+  }, []);
+
   const signOut = useCallback(async () => {
     try {
       await getMobileApi().signOut();
@@ -88,8 +97,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [queryClient]);
 
   const value = useMemo(
-    () => ({ signIn, signOut, status, user }),
-    [signIn, signOut, status, user],
+    () => ({ refreshUser, signIn, signOut, status, user }),
+    [refreshUser, signIn, signOut, status, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
