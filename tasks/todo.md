@@ -27,22 +27,22 @@
 
 ## Autenticação
 
-- [ ] Escrever ADR da autenticação móvel.
+- [x] Escrever ADR da autenticação móvel.
 - [ ] Escrever testes de login, refresh, replay, logout e revogação.
-- [ ] Adicionar migration de `MobileSession` e `MobileDevice`.
-- [ ] Extrair verificação de credenciais compartilhada sem quebrar Auth.js.
-- [ ] Implementar `/api/mobile/v1/auth/login`.
-- [ ] Implementar `/api/mobile/v1/auth/refresh`.
-- [ ] Implementar `/api/mobile/v1/auth/logout`.
-- [ ] Implementar `/api/mobile/v1/me`.
-- [ ] Implementar SecureStore e restauração de sessão no app.
-- [ ] Implementar roteamento por `STUDENT`, `TEACHER` e `ADMIN`.
+- [x] Adicionar migration de `MobileSession` e `MobileDevice`.
+- [x] Extrair verificação de credenciais compartilhada sem quebrar Auth.js.
+- [x] Implementar `/api/mobile/v1/auth/login`.
+- [x] Implementar `/api/mobile/v1/auth/refresh`.
+- [x] Implementar `/api/mobile/v1/auth/logout`.
+- [x] Implementar `/api/mobile/v1/auth/me`.
+- [x] Implementar SecureStore e restauração de sessão no app.
+- [x] Implementar roteamento por `STUDENT`, `TEACHER` e `ADMIN`.
 - [ ] Executar smokes de auth web e móvel.
 
 ## STUDENT
 
-- [ ] Contrato e endpoint de bootstrap/resumo.
-- [ ] Tela de resumo com estados completos.
+- [x] Contrato e endpoint de bootstrap/resumo.
+- [x] Tela de resumo com estados completos.
 - [ ] Aulas e materiais protegidos.
 - [ ] Download e cache seguro de arquivos.
 - [ ] Lista e detalhe de homework.
@@ -61,8 +61,8 @@
 
 ## TEACHER
 
-- [ ] Resumo da teacher.
-- [ ] Alunos vinculados.
+- [x] Resumo da teacher.
+- [x] Alunos vinculados.
 - [ ] Aulas e materiais.
 - [ ] Criação e edição de aula interativa.
 - [ ] Homework: criar, duplicar, editar e excluir.
@@ -70,17 +70,17 @@
 - [ ] Fila de submissões e feedback.
 - [ ] Mensagens com alunos vinculados.
 - [ ] Contratos permitidos.
-- [ ] Pré-cadastros próprios/atribuídos.
+- [x] Pré-cadastros próprios/atribuídos.
 - [ ] Conversão autorizada de pré-cadastro.
 - [ ] Candy XP permitido.
 - [ ] Catty Learning e artefatos permitidos.
-- [ ] Secretaria limitada.
+- [x] Secretaria limitada.
 - [ ] Testes negativos de vínculo.
 - [ ] Smoke completo `TEACHER`.
 
 ## ADMIN
 
-- [ ] Resumo administrativo.
+- [x] Resumo administrativo.
 - [ ] Usuários: listar, buscar e detalhar.
 - [ ] Criar, editar, ativar e desativar usuário.
 - [ ] Redefinição de senha com revogação.

@@ -31,7 +31,8 @@
           "image": "./assets/images/candy-logo.png",
           "imageWidth": 280
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

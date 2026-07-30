@@ -8,13 +8,17 @@ dados do projeto web Candy English.
 
 ## Status
 
-Especificação aprovada. Implementação incremental em andamento conforme
+Autenticação segura, sessão persistente, painéis por role e módulos nativos de
+consulta já estão implementados. A implementação das operações de escrita segue
+incrementalmente conforme
 [`docs/spec.md`](docs/spec.md) e [`tasks/plan.md`](tasks/plan.md).
 
 ## Documentação
 
 - [`docs/spec.md`](docs/spec.md): escopo, arquitetura, segurança e critérios de
   sucesso.
+- [`docs/adr/0001-mobile-auth.md`](docs/adr/0001-mobile-auth.md): decisão de
+  autenticação e armazenamento de tokens.
 - [`tasks/plan.md`](tasks/plan.md): fases e checkpoints.
 - [`tasks/todo.md`](tasks/todo.md): tarefas verificáveis.
 
@@ -28,8 +32,14 @@ Requisitos: Node.js 22.13 ou superior e npm.
 
 ```powershell
 npm.cmd ci
+Copy-Item .env.example .env
 npm.cmd start
 ```
+
+Configure `EXPO_PUBLIC_API_URL` com a URL pública HTTPS do backend, sem
+`/api/mobile/v1`. Em desenvolvimento, o fallback é `http://localhost:3000` no
+iOS/web e `http://10.0.2.2:3000` no emulador Android. Um celular físico precisa
+usar uma URL acessível pela rede ou HTTPS.
 
 Atalhos:
 
@@ -51,3 +61,6 @@ npx.cmd expo install --check
 
 O projeto usa Expo Router em `src/app`, TypeScript estrito, Jest Expo e os
 assets reais da marca Candy English.
+
+O backend precisa receber primeiro a migration
+`20260730121000_mobile_sessions`. Sem ela, o login do aplicativo não funciona.
