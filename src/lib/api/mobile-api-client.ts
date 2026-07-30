@@ -22,6 +22,7 @@ type MobileApiClientOptions = {
   createRequestId?: () => string;
   fetcher?: Fetcher;
   getDeviceIdentity: () => Promise<DeviceIdentity>;
+  onSessionCleared?: () => Promise<void>;
   sessionStore: AuthSessionStore;
   timeoutMs?: number;
 };
@@ -76,8 +77,11 @@ const moduleItemSchema = z
   .object({
     amountCents: z.number().int().nonnegative().optional(),
     detail: z.string().optional(),
+    fileName: z.string().min(1).optional(),
     id: z.string().min(1),
+    mimeType: z.string().min(1).optional(),
     occurredAt: z.string().datetime().optional(),
+    sizeBytes: z.number().int().positive().optional(),
     status: z.string().optional(),
     subtitle: z.string().optional(),
     title: z.string().min(1),
@@ -327,6 +331,16 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
   const timeoutMs = options.timeoutMs ?? 15_000;
   let refreshPromise: Promise<AuthSession> | null = null;
 
+  async function clearLocalSession() {
+    await options.sessionStore.clear();
+
+    try {
+      await options.onSessionCleared?.();
+    } catch {
+      // Session cleanup must not be blocked by an unavailable cache directory.
+    }
+  }
+
   async function readError(response: Response) {
     const body = await response.json().catch(() => null);
     const parsed = errorResponseSchema.safeParse(body);
@@ -410,7 +424,7 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
     });
 
     if (!response.ok) {
-      await options.sessionStore.clear();
+      await clearLocalSession();
       throw new ApiError(
         "SESSION_EXPIRED",
         "Entre novamente para continuar.",
@@ -422,7 +436,7 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
     const parsed = successSessionSchema.safeParse(await response.json());
 
     if (!parsed.success) {
-      await options.sessionStore.clear();
+      await clearLocalSession();
       throw new ApiError(
         "INVALID_RESPONSE",
         "O servidor retornou uma resposta inválida.",
@@ -674,6 +688,28 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       };
     },
 
+    async getContractDownloadSource(contractId: string) {
+      await authenticatedRequest("/auth/me", { method: "GET" });
+      const session = await options.sessionStore.get();
+
+      if (!session?.tokens.accessToken) {
+        throw new ApiError(
+          "SESSION_EXPIRED",
+          "Sua sessão expirou. Entre novamente.",
+          401,
+        );
+      }
+
+      return {
+        headers: {
+          Authorization: `Bearer ${session.tokens.accessToken}`,
+        },
+        uri: `${baseUrl}/api/mobile/v1/contracts/${encodeURIComponent(
+          contractId,
+        )}`,
+      };
+    },
+
     async getChatThreads(): Promise<MobileChatThread[]> {
       const response = await authenticatedRequest("/chat/threads", {
         method: "GET",
@@ -779,7 +815,7 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
           );
         }
       } finally {
-        await options.sessionStore.clear();
+        await clearLocalSession();
       }
     },
   };

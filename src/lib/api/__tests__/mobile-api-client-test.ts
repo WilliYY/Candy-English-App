@@ -448,6 +448,52 @@ describe("MobileApiClient", () => {
     });
   });
 
+  it("keeps the contract token in headers and out of the download URL", async () => {
+    const memory = createMemoryStore(sessionPayload("access-contract"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe("https://candy.example/api/mobile/v1/auth/me");
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-contract",
+      );
+
+      return jsonResponse(200, {
+        ok: true,
+        user: sessionPayload().user,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    const source = await client.getContractDownloadSource("contract/1");
+
+    expect(source).toEqual({
+      headers: { Authorization: "Bearer access-contract" },
+      uri: "https://candy.example/api/mobile/v1/contracts/contract%2F1",
+    });
+    expect(source.uri).not.toContain("access-contract");
+  });
+
+  it("clears protected local data when signing out", async () => {
+    const memory = createMemoryStore(sessionPayload("access-logout"));
+    const onSessionCleared = jest.fn(async () => undefined);
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher: jest.fn(async () => jsonResponse(204, null)),
+      getDeviceIdentity: async () => device,
+      onSessionCleared,
+      sessionStore: memory.store,
+    });
+
+    await client.signOut();
+
+    expect(memory.current).toBeNull();
+    expect(onSessionCleared).toHaveBeenCalledTimes(1);
+  });
+
   it("sends chat messages only through an authenticated pair", async () => {
     const memory = createMemoryStore(sessionPayload("access-chat"));
     const fetcher = jest.fn(async (url: string, init?: RequestInit) => {

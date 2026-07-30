@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   type PropsWithChildren,
@@ -11,6 +12,7 @@ import {
 import { getMobileApi } from "@/lib/api/mobile-api";
 import type { AuthUser } from "@/lib/auth/auth-session";
 import { secureSessionStore } from "@/lib/auth/secure-session-store";
+import { clearProtectedContractCache } from "@/lib/files/protected-contract-cache";
 
 type AuthStatus = "loading" | "anonymous" | "authenticated";
 
@@ -24,6 +26,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<AuthUser | null>(null);
 
@@ -48,7 +51,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
           setStatus("authenticated");
         }
       } catch {
-        await secureSessionStore.clear().catch(() => undefined);
+        await Promise.allSettled([
+          secureSessionStore.clear(),
+          clearProtectedContractCache(),
+        ]);
+        queryClient.clear();
 
         if (active) {
           setUser(null);
@@ -62,7 +69,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [queryClient]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const authenticatedUser = await getMobileApi().signIn(email, password);
@@ -74,10 +81,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
     try {
       await getMobileApi().signOut();
     } finally {
+      queryClient.clear();
       setUser(null);
       setStatus("anonymous");
     }
-  }, []);
+  }, [queryClient]);
 
   const value = useMemo(
     () => ({ signIn, signOut, status, user }),
