@@ -8,8 +8,8 @@ dados do projeto web Candy English.
 
 ## Status
 
-Projeto em especificação. A implementação começa após aprovação de
-[`docs/spec.md`](docs/spec.md).
+Especificação aprovada. Implementação incremental em andamento conforme
+[`docs/spec.md`](docs/spec.md) e [`tasks/plan.md`](tasks/plan.md).
 
 ## Documentação
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposta para aprovação antes da implementação.
+Aprovada pelo usuário em 2026-07-30.
 
 ## Objetivo
 
@@ -16,7 +16,7 @@ O aplicativo atenderá:
 - `TEACHER`: rotina pedagógica, alunos vinculados e Secretaria limitada.
 - `ADMIN`: AVA e Secretaria administrativa.
 
-## Premissas para aprovação
+## Premissas aprovadas
 
 1. O aplicativo será React Native com Expo e TypeScript, sem WebView como
    implementação das telas.

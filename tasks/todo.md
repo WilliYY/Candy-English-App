@@ -2,9 +2,9 @@
 
 ## Aprovação
 
-- [ ] Aprovar `docs/spec.md`.
-- [ ] Confirmar cofre `APIs e senhas` somente no site.
-- [ ] Confirmar financeiro sem pagamento online.
+- [x] Aprovar `docs/spec.md`.
+- [x] Confirmar cofre `APIs e senhas` somente no site.
+- [x] Confirmar financeiro sem pagamento online.
 
 ## Fundação
 
