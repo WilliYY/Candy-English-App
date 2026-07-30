@@ -647,4 +647,95 @@ describe("MobileApiClient", () => {
       ok: true,
     });
   });
+
+  it("loads the private student Candy XP overview with bearer authentication", async () => {
+    const memory = createMemoryStore(sessionPayload("access-candy-xp"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe("https://candy.example/api/mobile/v1/candy-xp");
+      expect(init?.method).toBe("GET");
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-candy-xp",
+      );
+
+      return jsonResponse(200, {
+        candyXp: {
+          activities: [
+            {
+              assetKind: "PDF",
+              assetPageCount: 2,
+              category: "Vocabulary",
+              description: "Revise as cores.",
+              id: "activity-1",
+              interactiveFieldCount: 3,
+              level: "A1",
+              questionCount: 0,
+              submission: null,
+              title: "Candy Colors",
+              xpReward: 80,
+            },
+          ],
+          profile: {
+            badgeCount: 2,
+            level: 3,
+            longestStreakDays: 5,
+            progressPercent: 60,
+            progressXp: 60,
+            requiredXp: 100,
+            streakDays: 3,
+            totalXp: 500,
+            xpToNextLevel: 40,
+          },
+          ranking: {
+            currentUser: {
+              hasXp: true,
+              position: 2,
+              totalInCategory: 10,
+              totalXp: 500,
+              xpToNextLevel: 40,
+            },
+            generatedAt: "2026-07-30T15:00:00.000Z",
+            topEntries: [
+              {
+                isCurrentUser: true,
+                level: 3,
+                name: "Candy Student",
+                position: 2,
+                progressPercent: 60,
+                totalXp: 500,
+                xpToNextLevel: 40,
+              },
+            ],
+            totalRanked: 10,
+          },
+          recentEvents: [
+            {
+              occurredAt: "2026-07-30T14:00:00.000Z",
+              sourceLabel: "Homework enviado",
+              xp: 150,
+            },
+          ],
+          sources: [
+            {
+              label: "Homework enviado",
+              value: 1,
+              xp: 150,
+            },
+          ],
+        },
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getStudentCandyXp()).resolves.toMatchObject({
+      activities: [{ id: "activity-1", title: "Candy Colors" }],
+      profile: { level: 3, totalXp: 500 },
+      ranking: { totalRanked: 10 },
+    });
+  });
 });

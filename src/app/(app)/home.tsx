@@ -25,6 +25,11 @@ export default function HomeRoute() {
           return;
         }
 
+        if (slug === "xp") {
+          router.push("/candy-xp");
+          return;
+        }
+
         router.push({ pathname: "/module/[slug]", params: { slug } });
       }}
       onSignOut={signOut}

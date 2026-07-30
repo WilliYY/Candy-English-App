@@ -14,11 +14,16 @@ import {
   type MobileStudentProfile,
   type MobileStudentProfileUpdate,
 } from "@/lib/api/profile-contracts";
+import {
+  candyXpResponseSchema,
+  type MobileStudentCandyXp,
+} from "@/lib/api/candy-xp-contracts";
 
 export type {
   MobileStudentProfile,
   MobileStudentProfileUpdate,
 } from "@/lib/api/profile-contracts";
+export type { MobileStudentCandyXp } from "@/lib/api/candy-xp-contracts";
 
 type Fetcher = (url: string, init?: RequestInit) => Promise<Response>;
 
@@ -545,6 +550,23 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.profile;
+    },
+
+    async getStudentCandyXp(): Promise<MobileStudentCandyXp> {
+      const response = await authenticatedRequest("/candy-xp", {
+        method: "GET",
+      });
+      const parsed = candyXpResponseSchema.safeParse(await response.json());
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta invÃ¡lida.",
+          502,
+        );
+      }
+
+      return parsed.data.candyXp;
     },
 
     async updateStudentProfile(input: MobileStudentProfileUpdate) {

@@ -52,7 +52,7 @@
 - [x] Mensagens com teacher vinculada.
 - [x] Contratos protegidos.
 - [x] Perfil e avatar.
-- [ ] Candy XP, ranking e atividades.
+- [x] Candy XP, ranking e atividades.
 - [ ] Submissão Candy XP.
 - [ ] Catty autenticada.
 - [ ] Aula ao vivo/manutenção.
