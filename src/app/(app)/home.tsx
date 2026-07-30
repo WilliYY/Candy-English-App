@@ -14,9 +14,14 @@ export default function HomeRoute() {
   return (
     <DashboardScreen
       name={user.name}
-      onOpenModule={(slug) =>
-        router.push({ pathname: "/module/[slug]", params: { slug } })
-      }
+      onOpenModule={(slug) => {
+        if (slug === "messages") {
+          router.push("/chat");
+          return;
+        }
+
+        router.push({ pathname: "/module/[slug]", params: { slug } });
+      }}
       onSignOut={signOut}
       role={user.role}
     />

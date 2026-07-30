@@ -49,7 +49,7 @@
 - [ ] Rascunho e envio idempotente de homework.
 - [ ] Renderização dos campos interativos suportados.
 - [ ] Feedback de homework.
-- [ ] Mensagens com teacher vinculada.
+- [x] Mensagens com teacher vinculada.
 - [ ] Contratos protegidos.
 - [ ] Perfil e avatar.
 - [ ] Candy XP, ranking e atividades.
@@ -68,7 +68,7 @@
 - [ ] Homework: criar, duplicar, editar e excluir.
 - [ ] Editor nativo de campos interativos.
 - [ ] Fila de submissões e feedback.
-- [ ] Mensagens com alunos vinculados.
+- [x] Mensagens com alunos vinculados.
 - [ ] Contratos permitidos.
 - [x] Pré-cadastros próprios/atribuídos.
 - [ ] Conversão autorizada de pré-cadastro.

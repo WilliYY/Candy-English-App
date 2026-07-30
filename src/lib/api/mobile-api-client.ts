@@ -102,6 +102,51 @@ const moduleResponseSchema = z
 
 export type MobileModuleData = z.infer<typeof moduleDataSchema>;
 
+const chatThreadSchema = z
+  .object({
+    id: z.string().min(1),
+    lastMessage: z.string().nullable(),
+    lastMessageAt: z.string().datetime(),
+    peerName: z.string().min(1),
+    studentProfileId: z.string().min(1),
+    teacherProfileId: z.string().min(1),
+  })
+  .strict();
+
+const chatMessageSchema = z
+  .object({
+    body: z.string(),
+    createdAt: z.string().datetime(),
+    id: z.string().min(1),
+    isMine: z.boolean(),
+    senderName: z.string().min(1),
+  })
+  .strict();
+
+const chatThreadsResponseSchema = z
+  .object({
+    ok: z.literal(true),
+    threads: z.array(chatThreadSchema),
+  })
+  .strict();
+
+const chatMessagesResponseSchema = z
+  .object({
+    messages: z.array(chatMessageSchema),
+    ok: z.literal(true),
+  })
+  .strict();
+
+const chatSendResponseSchema = z
+  .object({
+    message: z.string().min(1),
+    ok: z.literal(true),
+  })
+  .strict();
+
+export type MobileChatThread = z.infer<typeof chatThreadSchema>;
+export type MobileChatMessage = z.infer<typeof chatMessageSchema>;
+
 const errorResponseSchema = z.object({
   error: z.object({
     code: z.string(),
@@ -357,6 +402,68 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.data;
+    },
+
+    async getChatThreads(): Promise<MobileChatThread[]> {
+      const response = await authenticatedRequest("/chat/threads", {
+        method: "GET",
+      });
+      const parsed = chatThreadsResponseSchema.safeParse(await response.json());
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data.threads;
+    },
+
+    async getChatMessages(pair: {
+      studentProfileId: string;
+      teacherProfileId: string;
+    }): Promise<MobileChatMessage[]> {
+      const query = new URLSearchParams(pair).toString();
+      const response = await authenticatedRequest(`/chat/messages?${query}`, {
+        method: "GET",
+      });
+      const parsed = chatMessagesResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data.messages;
+    },
+
+    async sendChatMessage(input: {
+      body: string;
+      studentProfileId: string;
+      teacherProfileId: string;
+    }) {
+      const response = await authenticatedRequest("/chat/messages", {
+        body: JSON.stringify(input),
+        method: "POST",
+      });
+      const parsed = chatSendResponseSchema.safeParse(await response.json());
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data;
     },
 
     async signIn(email: string, password: string) {

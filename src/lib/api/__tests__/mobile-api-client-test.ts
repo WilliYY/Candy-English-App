@@ -238,4 +238,43 @@ describe("MobileApiClient", () => {
     expect(module.title).toBe("Correções");
     expect(module.items[0]?.status).toBe("SUBMITTED");
   });
+
+  it("sends chat messages only through an authenticated pair", async () => {
+    const memory = createMemoryStore(sessionPayload("access-chat"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/chat/messages",
+      );
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-chat",
+      );
+      expect(JSON.parse(String(init?.body))).toEqual({
+        body: "Hello, teacher!",
+        studentProfileId: "student-profile-1",
+        teacherProfileId: "teacher-profile-1",
+      });
+
+      return jsonResponse(201, {
+        message: "Mensagem enviada.",
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(
+      client.sendChatMessage({
+        body: "Hello, teacher!",
+        studentProfileId: "student-profile-1",
+        teacherProfileId: "teacher-profile-1",
+      }),
+    ).resolves.toEqual({
+      message: "Mensagem enviada.",
+      ok: true,
+    });
+  });
 });
