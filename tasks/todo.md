@@ -54,7 +54,7 @@
 - [x] Perfil e avatar.
 - [x] Candy XP, ranking e atividades.
 - [x] Submissão Candy XP.
-- [ ] Catty autenticada.
+- [x] Catty autenticada.
 - [ ] Aula ao vivo/manutenção.
 - [ ] Notificações do aluno.
 - [ ] Smoke completo `STUDENT`.

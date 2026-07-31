@@ -32,6 +32,7 @@ const roleContent: Record<
       { slug: "lessons", label: "Aulas", description: "Conteúdos e materiais da teacher" },
       { slug: "homeworks", label: "Homework", description: "Tarefas, rascunhos e feedback" },
       { slug: "xp", label: "Candy XP", description: "Missões, conquistas e ranking" },
+      { slug: "catty", label: "Catty", description: "Pratique inglês com ajuda segura" },
       { slug: "messages", label: "Mensagens", description: "Converse com sua teacher" },
       { slug: "contracts", label: "Contratos", description: "Documentos liberados para você" },
       { slug: "profile", label: "Meu perfil", description: "Dados pessoais e foto compartilhados com o site" },

@@ -853,4 +853,69 @@ describe("MobileApiClient", () => {
       uri: "https://candy.example/api/mobile/v1/candy-xp/activity-1/asset",
     });
   });
+
+  it("loads and continues the authenticated Catty history", async () => {
+    const memory = createMemoryStore(sessionPayload("access-catty"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-catty",
+      );
+
+      if (init?.method === "GET") {
+        expect(url).toBe(
+          "https://candy.example/api/mobile/v1/catty/chat?area=student",
+        );
+        return jsonResponse(200, {
+          messages: [
+            { from: "user", id: "message-user-1", text: "Hello" },
+            {
+              from: "catty",
+              id: "message-catty-1",
+              text: "Hi! = Oi!",
+            },
+          ],
+          ok: true,
+        });
+      }
+
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/catty/chat",
+      );
+      expect(JSON.parse(String(init?.body))).toEqual({
+        context: { area: "student" },
+        history: [
+          { from: "user", text: "Hello" },
+          { from: "catty", text: "Hi! = Oi!" },
+        ],
+        message: "How are you?",
+      });
+      return jsonResponse(200, {
+        messageId: "message-catty-2",
+        ok: true,
+        reply: "I'm great! = Eu estou otima!",
+        source: "gemini",
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+    const context = { area: "student" as const };
+    const history = await client.getCattyHistory(context);
+
+    await expect(
+      client.sendCattyMessage({
+        context,
+        history,
+        message: "How are you?",
+      }),
+    ).resolves.toEqual({
+      messageId: "message-catty-2",
+      ok: true,
+      reply: "I'm great! = Eu estou otima!",
+      source: "gemini",
+    });
+  });
 });

@@ -15,6 +15,11 @@ export default function HomeRoute() {
     <DashboardScreen
       name={user.name}
       onOpenModule={(slug) => {
+        if (slug === "catty") {
+          router.push("/catty");
+          return;
+        }
+
         if (slug === "messages") {
           router.push("/chat");
           return;

@@ -226,8 +226,37 @@ const chatSendResponseSchema = z
   })
   .strict();
 
+const cattyMessageSchema = z
+  .object({
+    from: z.enum(["catty", "user"]),
+    id: z.string().min(1),
+    text: z.string().min(1).max(900),
+  })
+  .strict();
+
+const cattyHistoryResponseSchema = z
+  .object({
+    messages: z.array(cattyMessageSchema),
+    ok: z.literal(true),
+  })
+  .strict();
+
+const cattyReplyResponseSchema = z
+  .object({
+    messageId: z.string().min(1).optional(),
+    ok: z.literal(true),
+    reply: z.string().min(1).max(900),
+    source: z.enum(["fallback", "gemini", "openai"]),
+  })
+  .strict();
+
 export type MobileChatThread = z.infer<typeof chatThreadSchema>;
 export type MobileChatMessage = z.infer<typeof chatMessageSchema>;
+export type MobileCattyMessage = z.infer<typeof cattyMessageSchema>;
+export type MobileCattyContext = {
+  area: "admin" | "student" | "teacher";
+  task?: string;
+};
 
 const homeworkSchema = z
   .object({
@@ -388,9 +417,10 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
     path: string,
     init: RequestInit,
     accessToken?: string,
+    requestTimeoutMs = timeoutMs,
   ) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
     const headers = new Headers(init.headers);
 
     headers.set("accept", "application/json");
@@ -486,7 +516,11 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
     return refreshPromise;
   }
 
-  async function authenticatedRequest(path: string, init: RequestInit) {
+  async function authenticatedRequest(
+    path: string,
+    init: RequestInit,
+    requestTimeoutMs = timeoutMs,
+  ) {
     let session = await options.sessionStore.get();
 
     if (!session) {
@@ -501,11 +535,21 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       session = await refreshSessionOnce();
     }
 
-    let response = await request(path, init, session.tokens.accessToken);
+    let response = await request(
+      path,
+      init,
+      session.tokens.accessToken,
+      requestTimeoutMs,
+    );
 
     if (response.status === 401) {
       const refreshed = await refreshSessionOnce();
-      response = await request(path, init, refreshed.tokens.accessToken);
+      response = await request(
+        path,
+        init,
+        refreshed.tokens.accessToken,
+        requestTimeoutMs,
+      );
     }
 
     if (!response.ok) {
@@ -956,6 +1000,64 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.threads;
+    },
+
+    async getCattyHistory(
+      context: MobileCattyContext,
+    ): Promise<MobileCattyMessage[]> {
+      const query = new URLSearchParams({
+        area: context.area,
+        ...(context.task ? { task: context.task } : {}),
+      }).toString();
+      const response = await authenticatedRequest(`/catty/chat?${query}`, {
+        method: "GET",
+      });
+      const parsed = cattyHistoryResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta invalida.",
+          502,
+        );
+      }
+
+      return parsed.data.messages;
+    },
+
+    async sendCattyMessage(input: {
+      context: MobileCattyContext;
+      history: MobileCattyMessage[];
+      message: string;
+    }) {
+      const response = await authenticatedRequest(
+        "/catty/chat",
+        {
+          body: JSON.stringify({
+            context: input.context,
+            history: input.history.slice(-8).map(({ from, text }) => ({
+              from,
+              text,
+            })),
+            message: input.message,
+          }),
+          method: "POST",
+        },
+        30_000,
+      );
+      const parsed = cattyReplyResponseSchema.safeParse(await response.json());
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta invalida.",
+          502,
+        );
+      }
+
+      return parsed.data;
     },
 
     async getChatMessages(pair: {
