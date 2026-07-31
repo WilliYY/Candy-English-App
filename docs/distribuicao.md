@@ -98,7 +98,7 @@ revisados nas respectivas lojas.
 
 | Tipo de mudança | Como chega ao usuário |
 | --- | --- |
-| Aula, mensagem, homework, contrato, perfil ou XP | Pelo backend compartilhado, sem reinstalar |
+| Aula, aviso, mensagem, homework, contrato, perfil ou XP | Pelo backend compartilhado, sem reinstalar |
 | Regra ou correção somente no servidor | Pelo backend, preservando compatibilidade da API |
 | JavaScript, estilos e imagens compatíveis | Pode usar EAS Update depois que ele for configurado |
 | Biblioteca nativa, permissão, plugin ou configuração nativa | Exige novo build e nova versão da loja |
@@ -106,6 +106,12 @@ revisados nas respectivas lojas.
 O EAS Update só deve ser ativado depois de configurar `runtimeVersion`, canais
 separados para `preview` e `production` e uma estratégia de rollback. Um update
 de preview nunca deve ser enviado diretamente ao canal de produção.
+
+Os avisos dentro do app já usam os dados compartilhados do backend. O push que
+aparece fora do aplicativo será ativado somente depois de vincular o projeto
+Expo/EAS, definir os identificadores finais e testar em aparelhos físicos. O
+push enviará apenas um aviso mínimo; o conteúdo completo continuará sendo
+buscado pelo app autenticado.
 
 ## Checklist antes de compartilhar
 

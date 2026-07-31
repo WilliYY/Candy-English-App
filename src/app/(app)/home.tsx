@@ -20,6 +20,11 @@ export default function HomeRoute() {
           return;
         }
 
+        if (slug === "notifications") {
+          router.push("/notifications");
+          return;
+        }
+
         if (slug === "catty") {
           router.push("/catty");
           return;

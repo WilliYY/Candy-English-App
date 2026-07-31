@@ -56,7 +56,7 @@
 - [x] Submissão Candy XP.
 - [x] Catty autenticada.
 - [x] Aula ao vivo/manutenção.
-- [ ] Notificações do aluno.
+- [x] Notificações do aluno.
 - [ ] Smoke completo `STUDENT`.
 
 ## TEACHER

@@ -1,0 +1,151 @@
+import { StyleSheet } from "react-native";
+
+import { colors, radii, spacing, typeScale } from "@/theme/tokens";
+
+export const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
+  content: {
+    alignSelf: "center",
+    maxWidth: 720,
+    padding: spacing.lg,
+    paddingBottom: spacing.xxl,
+    width: "100%",
+  },
+  back: {
+    alignSelf: "flex-start",
+    borderRadius: radii.sm,
+    justifyContent: "center",
+    minHeight: 44,
+    paddingVertical: spacing.xs,
+  },
+  backText: {
+    color: colors.brand,
+    fontSize: typeScale.body,
+    fontWeight: "900",
+  },
+  eyebrow: {
+    color: colors.focus,
+    fontSize: typeScale.caption,
+    fontWeight: "900",
+    letterSpacing: 1.2,
+    marginTop: spacing.xl,
+  },
+  title: {
+    color: colors.brandDeep,
+    fontSize: typeScale.title,
+    fontWeight: "900",
+    letterSpacing: -1.2,
+    lineHeight: 42,
+    marginTop: spacing.xs,
+  },
+  subtitle: {
+    color: colors.textMuted,
+    fontSize: typeScale.body,
+    lineHeight: 24,
+    marginTop: spacing.sm,
+  },
+  stateCard: {
+    alignItems: "flex-start",
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+    padding: spacing.lg,
+  },
+  stateText: {
+    color: colors.textMuted,
+    fontSize: 15,
+    lineHeight: 23,
+  },
+  stateTitle: {
+    color: colors.brandDeep,
+    fontSize: typeScale.lead,
+    fontWeight: "900",
+  },
+  errorTitle: {
+    color: colors.focus,
+    fontSize: typeScale.lead,
+    fontWeight: "900",
+  },
+  secondaryButton: {
+    borderColor: colors.brand,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    marginTop: spacing.sm,
+    minHeight: 48,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  secondaryButtonText: {
+    color: colors.brand,
+    fontSize: 14,
+    fontWeight: "900",
+  },
+  itemCard: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    marginTop: spacing.lg,
+    padding: spacing.lg,
+  },
+  itemCardPressed: {
+    borderColor: colors.focus,
+    opacity: 0.84,
+  },
+  itemHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.sm,
+    justifyContent: "space-between",
+  },
+  categoryPill: {
+    backgroundColor: colors.coral,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  categoryText: {
+    color: colors.brandDeep,
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+  },
+  itemDate: {
+    color: colors.textMuted,
+    flexShrink: 1,
+    fontSize: typeScale.caption,
+    textAlign: "right",
+  },
+  itemTitle: {
+    color: colors.brandDeep,
+    fontSize: typeScale.lead,
+    fontWeight: "900",
+    lineHeight: 25,
+    marginTop: spacing.md,
+  },
+  itemSummary: {
+    color: colors.textMuted,
+    fontSize: 15,
+    lineHeight: 23,
+    marginTop: spacing.xs,
+  },
+  openHint: {
+    color: colors.brand,
+    fontSize: 14,
+    fontWeight: "900",
+    marginTop: spacing.md,
+  },
+  securityNote: {
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: spacing.xl,
+    textAlign: "center",
+  },
+});

@@ -999,4 +999,89 @@ describe("MobileApiClient", () => {
       status: 502,
     });
   });
+
+  it("loads the authenticated student notification inbox", async () => {
+    const memory = createMemoryStore(sessionPayload("access-notifications"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/notifications",
+      );
+      expect(init?.method).toBe("GET");
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-notifications",
+      );
+
+      return jsonResponse(200, {
+        notifications: {
+          generatedAt: "2026-07-30T15:00:00.000Z",
+          items: [
+            {
+              eventAt: "2026-07-30T14:30:00.000Z",
+              id: "lesson:lesson-1",
+              summary: "Uma aula foi liberada ou atualizada para voce.",
+              target: {
+                id: "lesson-1",
+                kind: "LESSON",
+              },
+              title: "Aula: Simple present",
+              type: "CLASS",
+            },
+          ],
+        },
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getNotifications()).resolves.toMatchObject({
+      items: [
+        {
+          id: "lesson:lesson-1",
+          target: { id: "lesson-1", kind: "LESSON" },
+          type: "CLASS",
+        },
+      ],
+    });
+  });
+
+  it("rejects an unknown notification target from the server", async () => {
+    const memory = createMemoryStore(sessionPayload("access-notifications"));
+    const fetcher = jest.fn(async () =>
+      jsonResponse(200, {
+        notifications: {
+          generatedAt: "2026-07-30T15:00:00.000Z",
+          items: [
+            {
+              eventAt: "2026-07-30T14:30:00.000Z",
+              id: "finance:payment-1",
+              summary: "Conteudo financeiro indevido.",
+              target: {
+                id: "payment-1",
+                kind: "FINANCE",
+              },
+              title: "Pagamento",
+              type: "HOMEWORK",
+            },
+          ],
+        },
+        ok: true,
+      }),
+    );
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getNotifications()).rejects.toMatchObject({
+      code: "INVALID_RESPONSE",
+      status: 502,
+    });
+  });
 });

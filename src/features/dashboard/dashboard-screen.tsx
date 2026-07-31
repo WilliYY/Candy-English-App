@@ -34,6 +34,7 @@ const roleContent: Record<
       { slug: "xp", label: "Candy XP", description: "Missões, conquistas e ranking" },
       { slug: "catty", label: "Catty", description: "Pratique inglês com ajuda segura" },
       { slug: "live-class", label: "Aula ao vivo", description: "Sala e avisos sincronizados com o site" },
+      { slug: "notifications", label: "Avisos", description: "Aulas, tarefas, correções e conquistas" },
       { slug: "messages", label: "Mensagens", description: "Converse com sua teacher" },
       { slug: "contracts", label: "Contratos", description: "Documentos liberados para você" },
       { slug: "profile", label: "Meu perfil", description: "Dados pessoais e foto compartilhados com o site" },

@@ -295,6 +295,52 @@ const liveClassResponseSchema = z
   })
   .strict();
 
+const notificationTargetSchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      id: z.null(),
+      kind: z.literal("CANDY_XP"),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1).max(200),
+      kind: z.literal("HOMEWORK"),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1).max(200),
+      kind: z.literal("LESSON"),
+    })
+    .strict(),
+]);
+
+const notificationSchema = z
+  .object({
+    eventAt: z.string().datetime(),
+    id: z.string().min(1).max(240),
+    summary: z.string().min(1).max(300),
+    target: notificationTargetSchema,
+    title: z.string().min(1).max(160),
+    type: z.enum(["ACHIEVEMENT", "CLASS", "FEEDBACK", "HOMEWORK"]),
+  })
+  .strict();
+
+const notificationInboxSchema = z
+  .object({
+    generatedAt: z.string().datetime(),
+    items: z.array(notificationSchema).max(50),
+  })
+  .strict();
+
+const notificationResponseSchema = z
+  .object({
+    notifications: notificationInboxSchema,
+    ok: z.literal(true),
+  })
+  .strict();
+
 export type MobileChatThread = z.infer<typeof chatThreadSchema>;
 export type MobileChatMessage = z.infer<typeof chatMessageSchema>;
 export type MobileCattyMessage = z.infer<typeof cattyMessageSchema>;
@@ -304,6 +350,12 @@ export type MobileCattyContext = {
 };
 export type MobileLiveClassOverview = z.infer<
   typeof liveClassOverviewSchema
+>;
+export type MobileNotificationInbox = z.infer<
+  typeof notificationInboxSchema
+>;
+export type MobileNotificationTarget = z.infer<
+  typeof notificationTargetSchema
 >;
 
 const homeworkSchema = z
@@ -1123,6 +1175,25 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.liveClass;
+    },
+
+    async getNotifications(): Promise<MobileNotificationInbox> {
+      const response = await authenticatedRequest("/notifications", {
+        method: "GET",
+      });
+      const parsed = notificationResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data.notifications;
     },
 
     async getChatMessages(pair: {

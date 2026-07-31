@@ -12,7 +12,8 @@ Autenticação segura, sessão persistente, painéis por role, módulos nativos,
 mensagens, aulas com materiais/vocabulário, contratos PDF protegidos, perfil
 compartilhado com avatar otimizado, Candy XP com ranking, materiais, rascunho e
 entrega de atividades, Catty autenticada com histórico compartilhado e aula ao
-vivo com manutenção sincronizada, além de homeworks `TEXT`/interativas com
+vivo com manutenção sincronizada, central de avisos do aluno para aulas,
+tarefas, correções e conquistas, além de homeworks `TEXT`/interativas com
 desenho, listening e envio, já estão
 implementados. Arquivos protegidos usam download autenticado, cache temporário
 validado e limpeza no logout. A implementação das
