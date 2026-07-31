@@ -11,5 +11,15 @@ export default function CandyXpRoute() {
     return <Redirect href="/home" />;
   }
 
-  return <CandyXpScreen onBack={() => router.back()} />;
+  return (
+    <CandyXpScreen
+      onBack={() => router.back()}
+      onOpenActivity={(activityId) =>
+        router.push({
+          pathname: "/candy-xp/[activityId]",
+          params: { activityId },
+        })
+      }
+    />
+  );
 }

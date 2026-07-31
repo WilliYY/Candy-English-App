@@ -15,7 +15,11 @@ import {
   type MobileStudentProfileUpdate,
 } from "@/lib/api/profile-contracts";
 import {
+  candyXpActivityActionResponseSchema,
+  candyXpActivityResponseSchema,
   candyXpResponseSchema,
+  type MobileCandyXpActivity,
+  type MobileCandyXpAnswer,
   type MobileStudentCandyXp,
 } from "@/lib/api/candy-xp-contracts";
 
@@ -23,7 +27,12 @@ export type {
   MobileStudentProfile,
   MobileStudentProfileUpdate,
 } from "@/lib/api/profile-contracts";
-export type { MobileStudentCandyXp } from "@/lib/api/candy-xp-contracts";
+export type {
+  MobileCandyXpActivity,
+  MobileCandyXpActivityAction,
+  MobileCandyXpAnswer,
+  MobileStudentCandyXp,
+} from "@/lib/api/candy-xp-contracts";
 
 type Fetcher = (url: string, init?: RequestInit) => Promise<Response>;
 
@@ -561,12 +570,108 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       if (!parsed.success) {
         throw new ApiError(
           "INVALID_RESPONSE",
-          "O servidor retornou uma resposta invÃ¡lida.",
+          "O servidor retornou uma resposta invalida.",
           502,
         );
       }
 
       return parsed.data.candyXp;
+    },
+
+    async getStudentCandyXpActivity(
+      activityId: string,
+    ): Promise<MobileCandyXpActivity> {
+      const response = await authenticatedRequest(
+        `/candy-xp/${encodeURIComponent(activityId)}`,
+        { method: "GET" },
+      );
+      const parsed = candyXpActivityResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta invalida.",
+          502,
+        );
+      }
+
+      return parsed.data.activity;
+    },
+
+    async saveCandyXpActivityDraft(
+      activityId: string,
+      answers: MobileCandyXpAnswer[],
+    ) {
+      const response = await authenticatedRequest(
+        `/candy-xp/${encodeURIComponent(activityId)}/submission`,
+        {
+          body: JSON.stringify({ answers }),
+          method: "PUT",
+        },
+      );
+      const parsed = candyXpActivityActionResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta invalida.",
+          502,
+        );
+      }
+
+      return parsed.data;
+    },
+
+    async submitCandyXpActivity(
+      activityId: string,
+      answers: MobileCandyXpAnswer[],
+    ) {
+      const response = await authenticatedRequest(
+        `/candy-xp/${encodeURIComponent(activityId)}/submission`,
+        {
+          body: JSON.stringify({ answers }),
+          method: "POST",
+        },
+      );
+      const parsed = candyXpActivityActionResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta invalida.",
+          502,
+        );
+      }
+
+      return parsed.data;
+    },
+
+    async getCandyXpAssetSource(activityId: string) {
+      await authenticatedRequest("/auth/me", { method: "GET" });
+      const session = await options.sessionStore.get();
+
+      if (!session?.tokens.accessToken) {
+        throw new ApiError(
+          "SESSION_EXPIRED",
+          "Sua sessao expirou. Entre novamente.",
+          401,
+        );
+      }
+
+      return {
+        headers: {
+          Authorization: `Bearer ${session.tokens.accessToken}`,
+        },
+        uri: `${baseUrl}/api/mobile/v1/candy-xp/${encodeURIComponent(
+          activityId,
+        )}/asset`,
+      };
     },
 
     async updateStudentProfile(input: MobileStudentProfileUpdate) {

@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { styles } from "@/features/candy-xp/candy-xp-screen.styles";
 import type { MobileStudentCandyXp } from "@/lib/api/mobile-api-client";
@@ -64,8 +64,10 @@ function getActivityMeta(activity: Activity) {
 
 export function CandyXpActivityList({
   activities,
+  onOpenActivity,
 }: {
   activities: MobileStudentCandyXp["activities"];
+  onOpenActivity: (activityId: string) => void;
 }) {
   return (
     <View>
@@ -92,10 +94,12 @@ export function CandyXpActivityList({
             const status = getStatus(activity);
 
             return (
-              <View
+              <Pressable
                 accessibilityLabel={`${activity.title}, ${status.label}, ${activity.xpReward} XP`}
-                accessible
+                accessibilityHint="Abre os detalhes e respostas da missao"
+                accessibilityRole="button"
                 key={activity.id}
+                onPress={() => onOpenActivity(activity.id)}
                 style={styles.activityCard}
               >
                 <View style={styles.activityTitleRow}>
@@ -126,7 +130,8 @@ export function CandyXpActivityList({
                   </Text>
                   <Text style={styles.activityXp}>+{activity.xpReward} XP</Text>
                 </View>
-              </View>
+                <Text style={styles.activityOpenText}>Abrir missao →</Text>
+              </Pressable>
             );
           })}
         </View>

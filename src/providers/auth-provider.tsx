@@ -14,6 +14,7 @@ import type { AuthUser } from "@/lib/auth/auth-session";
 import { secureSessionStore } from "@/lib/auth/secure-session-store";
 import { clearAvatarUploadTemps } from "@/lib/files/avatar-upload";
 import { clearProtectedContractCache } from "@/lib/files/protected-contract-cache";
+import { clearProtectedLearningAssetCache } from "@/lib/files/protected-learning-asset-cache";
 
 type AuthStatus = "loading" | "anonymous" | "authenticated";
 
@@ -57,6 +58,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           secureSessionStore.clear(),
           clearAvatarUploadTemps(),
           clearProtectedContractCache(),
+          clearProtectedLearningAssetCache(),
         ]);
         queryClient.clear();
 

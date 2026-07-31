@@ -24,6 +24,7 @@ type CandyXpClient = {
 type CandyXpScreenProps = {
   client?: CandyXpClient;
   onBack: () => void;
+  onOpenActivity?: (activityId: string) => void;
 };
 
 function formatEventDate(value: string) {
@@ -48,7 +49,11 @@ function MetricCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function CandyXpScreen({ client, onBack }: CandyXpScreenProps) {
+export function CandyXpScreen({
+  client,
+  onBack,
+  onOpenActivity = () => undefined,
+}: CandyXpScreenProps) {
   const api = useMemo(() => client ?? getMobileApi(), [client]);
   const candyXp = useQuery({
     queryFn: () => api.getStudentCandyXp(),
@@ -173,7 +178,10 @@ export function CandyXpScreen({ client, onBack }: CandyXpScreenProps) {
               />
             </View>
 
-            <CandyXpActivityList activities={data.activities} />
+            <CandyXpActivityList
+              activities={data.activities}
+              onOpenActivity={onOpenActivity}
+            />
             <CandyXpRankingList ranking={data.ranking} />
 
             {data.sources.length > 0 ? (

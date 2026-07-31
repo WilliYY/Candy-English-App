@@ -52,6 +52,12 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "900",
   },
+  activityOpenText: {
+    color: colors.brand,
+    fontSize: typeScale.caption,
+    fontWeight: "800",
+    marginTop: spacing.sm,
+  },
   backButton: {
     alignSelf: "flex-start",
     paddingVertical: spacing.xs,

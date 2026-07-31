@@ -1,0 +1,177 @@
+import { StyleSheet } from "react-native";
+
+import { colors, radii, spacing, typeScale } from "@/theme/tokens";
+
+export const styles = StyleSheet.create({
+  assetButton: {
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderColor: colors.brand,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    minHeight: 48,
+    justifyContent: "center",
+    paddingHorizontal: spacing.md,
+  },
+  assetButtonDisabled: {
+    opacity: 0.5,
+  },
+  assetButtonBusy: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs,
+  },
+  assetButtonText: {
+    color: colors.brand,
+    fontSize: typeScale.caption,
+    fontWeight: "900",
+  },
+  assetCard: {
+    backgroundColor: "#F7EFF8",
+    borderColor: colors.energy,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  assetDescription: {
+    color: colors.textMuted,
+    fontSize: typeScale.caption,
+    lineHeight: 19,
+  },
+  assetMeta: {
+    color: colors.focus,
+    fontSize: typeScale.caption,
+    fontWeight: "800",
+  },
+  assetName: {
+    color: colors.brandDeep,
+    fontSize: typeScale.body,
+    fontWeight: "800",
+  },
+  backButton: {
+    alignSelf: "flex-start",
+    paddingVertical: spacing.xs,
+  },
+  backText: {
+    color: colors.brand,
+    fontSize: typeScale.body,
+    fontWeight: "800",
+  },
+  category: {
+    color: colors.focus,
+    fontSize: typeScale.caption,
+    fontWeight: "900",
+    letterSpacing: 1.1,
+  },
+  content: {
+    gap: spacing.lg,
+    paddingBottom: spacing.xxl,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+  },
+  errorText: {
+    color: "#A03232",
+    fontSize: typeScale.body,
+    lineHeight: 23,
+    textAlign: "center",
+  },
+  header: {
+    gap: spacing.sm,
+  },
+  headerBadges: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+  },
+  headerDescription: {
+    color: colors.textMuted,
+    fontSize: typeScale.body,
+    lineHeight: 24,
+  },
+  headerPill: {
+    backgroundColor: colors.coral,
+    borderRadius: radii.pill,
+    color: colors.brand,
+    fontSize: typeScale.caption,
+    fontWeight: "800",
+    overflow: "hidden",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  headerTitle: {
+    color: colors.brandDeep,
+    fontSize: 34,
+    fontWeight: "900",
+    lineHeight: 40,
+  },
+  hero: {
+    backgroundColor: colors.brandDeep,
+    borderRadius: radii.lg,
+    gap: spacing.sm,
+    overflow: "hidden",
+    padding: spacing.lg,
+  },
+  heroAccent: {
+    backgroundColor: colors.energy,
+    borderRadius: 80,
+    height: 120,
+    opacity: 0.18,
+    position: "absolute",
+    right: -24,
+    top: -38,
+    width: 120,
+  },
+  heroCaption: {
+    color: "#F7EAF7",
+    fontSize: typeScale.body,
+    lineHeight: 23,
+  },
+  heroXp: {
+    color: "#FFD47D",
+    fontSize: 28,
+    fontWeight: "900",
+  },
+  loadingCard: {
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    gap: spacing.sm,
+    padding: spacing.xl,
+  },
+  loadingText: {
+    color: colors.textMuted,
+    fontSize: typeScale.body,
+    textAlign: "center",
+  },
+  retryButton: {
+    backgroundColor: colors.brand,
+    borderRadius: radii.pill,
+    minHeight: 48,
+    justifyContent: "center",
+    paddingHorizontal: spacing.lg,
+  },
+  retryText: {
+    color: colors.surface,
+    fontSize: typeScale.body,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  safeArea: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
+  statusBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#F3EAF5",
+    borderRadius: radii.pill,
+    color: colors.brand,
+    fontSize: typeScale.caption,
+    fontWeight: "900",
+    overflow: "hidden",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+});

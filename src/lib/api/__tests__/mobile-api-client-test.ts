@@ -738,4 +738,119 @@ describe("MobileApiClient", () => {
       ranking: { totalRanked: 10 },
     });
   });
+
+  it("loads, saves and submits a protected Candy XP activity", async () => {
+    const memory = createMemoryStore(sessionPayload("access-candy-activity"));
+    const answers = [{ questionId: "question-1", value: "Blue" }];
+    let requestIndex = 0;
+    const submission = {
+      answers,
+      autoScorePercent: 100,
+      awardedXp: 80,
+      feedback: "Concluido automaticamente. +80 XP.",
+      id: "submission-1",
+      status: "REVIEWED",
+      submittedAt: "2026-07-30T16:00:00.000Z",
+    } as const;
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-candy-activity",
+      );
+      requestIndex += 1;
+
+      if (requestIndex === 1) {
+        expect(url).toBe(
+          "https://candy.example/api/mobile/v1/candy-xp/activity-1",
+        );
+        expect(init?.method).toBe("GET");
+
+        return jsonResponse(200, {
+          activity: {
+            asset: {
+              fileName: "colors.pdf",
+              kind: "PDF",
+              mimeType: "application/pdf",
+              pageCount: 2,
+              sizeBytes: 2048,
+            },
+            canSubmit: true,
+            category: "Vocabulary",
+            description: "Revise as cores.",
+            id: "activity-1",
+            interactiveFields: [],
+            level: "A1",
+            questions: [
+              {
+                id: "question-1",
+                options: [{ text: "Blue" }, { text: "Green" }],
+                prompt: "Choose a color",
+                required: true,
+                sortOrder: 0,
+                type: "MULTIPLE_CHOICE",
+              },
+            ],
+            submission: null,
+            title: "Candy Colors",
+            xpReward: 80,
+          },
+          ok: true,
+        });
+      }
+
+      if (requestIndex === 2 || requestIndex === 3) {
+        expect(url).toBe(
+          "https://candy.example/api/mobile/v1/candy-xp/activity-1/submission",
+        );
+        expect(init?.method).toBe(requestIndex === 2 ? "PUT" : "POST");
+        expect(JSON.parse(String(init?.body))).toEqual({ answers });
+
+        return jsonResponse(200, {
+          message:
+            requestIndex === 2
+              ? "Progresso Candy XP salvo."
+              : "Missao concluida. +80 XP.",
+          ok: true,
+          replayed: false,
+          submission,
+        });
+      }
+
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/auth/me",
+      );
+      expect(init?.method).toBe("GET");
+      return jsonResponse(200, { ok: true });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(
+      client.getStudentCandyXpActivity("activity-1"),
+    ).resolves.toMatchObject({
+      id: "activity-1",
+      questions: [{ id: "question-1" }],
+    });
+    await expect(
+      client.saveCandyXpActivityDraft("activity-1", answers),
+    ).resolves.toMatchObject({
+      message: "Progresso Candy XP salvo.",
+      submission: { id: "submission-1" },
+    });
+    await expect(
+      client.submitCandyXpActivity("activity-1", answers),
+    ).resolves.toMatchObject({
+      message: "Missao concluida. +80 XP.",
+      submission: { awardedXp: 80, status: "REVIEWED" },
+    });
+    await expect(
+      client.getCandyXpAssetSource("activity-1"),
+    ).resolves.toEqual({
+      headers: { Authorization: "Bearer access-candy-activity" },
+      uri: "https://candy.example/api/mobile/v1/candy-xp/activity-1/asset",
+    });
+  });
 });

@@ -14,6 +14,13 @@ const candyXpSubmissionSchema = z
   })
   .strict();
 
+export const candyXpAnswerSchema = z
+  .object({
+    questionId: z.string().min(1),
+    value: z.string().max(20_000),
+  })
+  .strict();
+
 const candyXpActivitySchema = z
   .object({
     assetKind: z.enum(["IMAGE", "PDF"]).nullable(),
@@ -108,3 +115,109 @@ export const candyXpResponseSchema = z
 export type MobileStudentCandyXp = z.infer<
   typeof candyXpResponseSchema
 >["candyXp"];
+
+const candyXpActivitySubmissionDetailSchema = candyXpSubmissionSchema
+  .extend({
+    answers: z.array(candyXpAnswerSchema).max(140),
+  })
+  .strict();
+
+const candyXpQuestionOptionSchema = z
+  .object({
+    match: z.string().optional(),
+    text: z.string().min(1),
+  })
+  .strict();
+
+const candyXpQuestionSchema = z
+  .object({
+    id: z.string().min(1),
+    options: z.array(candyXpQuestionOptionSchema),
+    prompt: z.string().min(1),
+    required: z.boolean(),
+    sortOrder: nonNegativeInteger,
+    type: z.enum([
+      "CHECKBOX",
+      "LONG_TEXT",
+      "MATCHING",
+      "MULTIPLE_CHOICE",
+      "SHORT_TEXT",
+    ]),
+  })
+  .strict();
+
+const candyXpInteractiveFieldSchema = z
+  .object({
+    height: z.number().positive().max(100),
+    id: z.string().min(1),
+    label: z.string().nullable(),
+    page: z.number().int().positive(),
+    placeholder: z.string().nullable(),
+    required: z.boolean(),
+    sortOrder: nonNegativeInteger,
+    type: z.enum([
+      "CHECKBOX",
+      "DRAWING",
+      "LONG_TEXT",
+      "SHORT_TEXT",
+      "TINY_TEXT",
+    ]),
+    width: z.number().positive().max(100),
+    x: z.number().min(0).max(100),
+    y: z.number().min(0).max(100),
+  })
+  .strict();
+
+const candyXpActivityDetailSchema = z
+  .object({
+    asset: z
+      .object({
+        fileName: z.string().min(1),
+        kind: z.enum(["IMAGE", "PDF"]),
+        mimeType: z.enum([
+          "application/pdf",
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+        ]),
+        pageCount: z.number().int().positive(),
+        sizeBytes: z.number().int().positive(),
+      })
+      .strict()
+      .nullable(),
+    canSubmit: z.boolean(),
+    category: z.string(),
+    description: z.string().nullable(),
+    id: z.string().min(1),
+    interactiveFields: z.array(candyXpInteractiveFieldSchema),
+    level: z.string(),
+    questions: z.array(candyXpQuestionSchema),
+    submission: candyXpActivitySubmissionDetailSchema.nullable(),
+    title: z.string().min(1),
+    xpReward: nonNegativeInteger,
+  })
+  .strict();
+
+export const candyXpActivityResponseSchema = z
+  .object({
+    activity: candyXpActivityDetailSchema,
+    ok: z.literal(true),
+  })
+  .strict();
+
+export const candyXpActivityActionResponseSchema = z
+  .object({
+    message: z.string().min(1),
+    ok: z.literal(true),
+    replayed: z.boolean(),
+    submission: candyXpActivitySubmissionDetailSchema,
+  })
+  .strict();
+
+export type MobileCandyXpAnswer = z.infer<typeof candyXpAnswerSchema>;
+export type MobileCandyXpActivity = z.infer<
+  typeof candyXpActivityDetailSchema
+>;
+export type MobileCandyXpActivityAction = z.infer<
+  typeof candyXpActivityActionResponseSchema
+>;

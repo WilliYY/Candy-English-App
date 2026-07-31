@@ -53,7 +53,7 @@
 - [x] Contratos protegidos.
 - [x] Perfil e avatar.
 - [x] Candy XP, ranking e atividades.
-- [ ] Submissão Candy XP.
+- [x] Submissão Candy XP.
 - [ ] Catty autenticada.
 - [ ] Aula ao vivo/manutenção.
 - [ ] Notificações do aluno.

@@ -10,10 +10,11 @@ dados do projeto web Candy English.
 
 Autenticação segura, sessão persistente, painéis por role, módulos nativos,
 mensagens, aulas com materiais/vocabulário, contratos PDF protegidos, perfil
-compartilhado com avatar otimizado, Candy XP com ranking/atividades e homeworks
-`TEXT`/interativas com rascunho, desenho, listening e entrega já estão
-implementados. Contratos usam download autenticado, cache temporário validado e
-limpeza no logout. A implementação das demais operações de escrita segue conforme
+compartilhado com avatar otimizado, Candy XP com ranking, materiais, rascunho e
+entrega de atividades, além de homeworks `TEXT`/interativas com desenho,
+listening e envio, já estão implementados. Arquivos protegidos usam download
+autenticado, cache temporário validado e limpeza no logout. A implementação das
+demais operações de escrita segue conforme
 [`docs/spec.md`](docs/spec.md) e [`tasks/plan.md`](tasks/plan.md).
 
 ## Documentação
