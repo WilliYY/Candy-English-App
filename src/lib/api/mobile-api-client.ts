@@ -250,6 +250,51 @@ const cattyReplyResponseSchema = z
   })
   .strict();
 
+const secureLiveClassUrlSchema = z.string().url().refine((value) => {
+  const parsed = new URL(value);
+
+  return (
+    parsed.protocol === "https:" &&
+    parsed.username.length === 0 &&
+    parsed.password.length === 0
+  );
+});
+
+const liveClassSessionSchema = z
+  .object({
+    createdAt: z.string().datetime(),
+    endsAt: z.string().datetime().nullable(),
+    id: z.string().min(1),
+    isLive: z.boolean(),
+    joinUrl: secureLiveClassUrlSchema.nullable(),
+    startsAt: z.string().datetime().nullable(),
+    studentName: z.string().min(1).nullable(),
+    teacherName: z.string().min(1),
+    title: z.string().min(1),
+  })
+  .strict();
+
+const liveClassOverviewSchema = z
+  .object({
+    generatedAt: z.string().datetime(),
+    maintenance: z
+      .object({
+        enabled: z.boolean(),
+        message: z.string().min(1).nullable(),
+      })
+      .strict(),
+    role: z.enum(["ADMIN", "TEACHER", "STUDENT"]),
+    sessions: z.array(liveClassSessionSchema),
+  })
+  .strict();
+
+const liveClassResponseSchema = z
+  .object({
+    liveClass: liveClassOverviewSchema,
+    ok: z.literal(true),
+  })
+  .strict();
+
 export type MobileChatThread = z.infer<typeof chatThreadSchema>;
 export type MobileChatMessage = z.infer<typeof chatMessageSchema>;
 export type MobileCattyMessage = z.infer<typeof cattyMessageSchema>;
@@ -257,6 +302,9 @@ export type MobileCattyContext = {
   area: "admin" | "student" | "teacher";
   task?: string;
 };
+export type MobileLiveClassOverview = z.infer<
+  typeof liveClassOverviewSchema
+>;
 
 const homeworkSchema = z
   .object({
@@ -1058,6 +1106,23 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data;
+    },
+
+    async getLiveClass(): Promise<MobileLiveClassOverview> {
+      const response = await authenticatedRequest("/live-class", {
+        method: "GET",
+      });
+      const parsed = liveClassResponseSchema.safeParse(await response.json());
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta invalida.",
+          502,
+        );
+      }
+
+      return parsed.data.liveClass;
     },
 
     async getChatMessages(pair: {

@@ -918,4 +918,85 @@ describe("MobileApiClient", () => {
       source: "gemini",
     });
   });
+
+  it("loads the authenticated live-class maintenance state", async () => {
+    const memory = createMemoryStore(sessionPayload("access-live-class"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/live-class",
+      );
+      expect(init?.method).toBe("GET");
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-live-class",
+      );
+
+      return jsonResponse(200, {
+        liveClass: {
+          generatedAt: "2026-07-30T15:00:00.000Z",
+          maintenance: {
+            enabled: true,
+            message: "Aula ao vivo em manutencao.",
+          },
+          role: "STUDENT",
+          sessions: [],
+        },
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getLiveClass()).resolves.toMatchObject({
+      maintenance: {
+        enabled: true,
+      },
+      role: "STUDENT",
+      sessions: [],
+    });
+  });
+
+  it("rejects a non-HTTPS live-class join link", async () => {
+    const memory = createMemoryStore(sessionPayload("access-live-class"));
+    const fetcher = jest.fn(async () =>
+      jsonResponse(200, {
+        liveClass: {
+          generatedAt: "2026-07-30T15:00:00.000Z",
+          maintenance: {
+            enabled: false,
+            message: null,
+          },
+          role: "STUDENT",
+          sessions: [
+            {
+              createdAt: "2026-07-30T14:00:00.000Z",
+              endsAt: null,
+              id: "live-1",
+              isLive: true,
+              joinUrl: "http://meet.jit.si/candy-room",
+              startsAt: "2026-07-30T15:00:00.000Z",
+              studentName: null,
+              teacherName: "Teacher Candy",
+              title: "Conversation",
+            },
+          ],
+        },
+        ok: true,
+      }),
+    );
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getLiveClass()).rejects.toMatchObject({
+      code: "INVALID_RESPONSE",
+      status: 502,
+    });
+  });
 });

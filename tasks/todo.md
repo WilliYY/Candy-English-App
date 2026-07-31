@@ -55,7 +55,7 @@
 - [x] Candy XP, ranking e atividades.
 - [x] Submissão Candy XP.
 - [x] Catty autenticada.
-- [ ] Aula ao vivo/manutenção.
+- [x] Aula ao vivo/manutenção.
 - [ ] Notificações do aluno.
 - [ ] Smoke completo `STUDENT`.
 
