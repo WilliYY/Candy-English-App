@@ -84,7 +84,7 @@
 ## ADMIN
 
 - [x] Resumo administrativo.
-- [ ] Usuários: listar, buscar e detalhar.
+- [x] Usuários: listar, buscar e detalhar.
 - [ ] Criar, editar, ativar e desativar usuário.
 - [ ] Redefinição de senha com revogação.
 - [ ] Pré-cadastros completos.

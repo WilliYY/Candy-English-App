@@ -1935,4 +1935,84 @@ describe("MobileApiClient", () => {
       },
     ]);
   });
+
+  it("lists and loads safe administrative user details", async () => {
+    const memory = createMemoryStore({
+      ...sessionPayload("access-admin-users"),
+      user: { ...sessionPayload().user, role: "ADMIN" },
+    });
+    const urls: string[] = [];
+    const fetcher = jest.fn(async (url: string) => {
+      urls.push(url);
+      if (url.includes("/admin/users?")) {
+        return jsonResponse(200, {
+          ok: true,
+          users: {
+            generatedAt: "2026-08-01T12:00:00.000Z",
+            items: [
+              {
+                createdAt: "2026-07-01T12:00:00.000Z",
+                email: "student@candy.example",
+                id: "user/1",
+                isActive: true,
+                name: "Student Candy",
+                profileComplete: true,
+                role: "STUDENT",
+                updatedAt: "2026-08-01T12:00:00.000Z",
+              },
+            ],
+            nextCursor: null,
+            total: 1,
+          },
+        });
+      }
+
+      return jsonResponse(200, {
+        ok: true,
+        user: {
+          address: null,
+          createdAt: "2026-07-01T12:00:00.000Z",
+          email: "student@candy.example",
+          id: "user/1",
+          isActive: true,
+          name: "Student Candy",
+          phone: null,
+          role: "STUDENT",
+          studentProfile: {
+            contractsCount: 1,
+            id: "student-1",
+            lessonsCount: 2,
+            level: "B1",
+            submissionsCount: 3,
+            teacherNames: ["Teacher Candy"],
+          },
+          teacherProfile: null,
+          updatedAt: "2026-08-01T12:00:00.000Z",
+        },
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(
+      client.getAdminUsers({
+        limit: 25,
+        query: "Ana Candy",
+        role: "STUDENT",
+        status: "ACTIVE",
+      }),
+    ).resolves.toMatchObject({ items: [{ id: "user/1" }], total: 1 });
+    await expect(client.getAdminUser("user/1")).resolves.toMatchObject({
+      id: "user/1",
+      studentProfile: { teacherNames: ["Teacher Candy"] },
+    });
+    expect(urls).toEqual([
+      "https://candy.example/api/mobile/v1/admin/users?limit=25&query=Ana+Candy&role=STUDENT&status=ACTIVE",
+      "https://candy.example/api/mobile/v1/admin/users/user%2F1",
+    ]);
+  });
 });

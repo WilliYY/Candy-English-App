@@ -1,6 +1,13 @@
 import { z } from "zod";
 
 import {
+  adminUserResponseSchema,
+  adminUsersResponseSchema,
+  type AdminUsersInput,
+  type MobileAdminUserDetail,
+  type MobileAdminUserList,
+} from "@/lib/api/admin-users-contracts";
+import {
   authSessionSchema,
   authUserSchema,
   type AuthSession,
@@ -33,6 +40,13 @@ import {
   type TeacherCattyLearningInput,
 } from "@/lib/api/teacher-catty-contracts";
 
+export type {
+  AdminUsersInput,
+  MobileAdminUserDetail,
+  MobileAdminUserList,
+  MobileAdminUserListItem,
+  MobileAdminUserRole,
+} from "@/lib/api/admin-users-contracts";
 export type {
   MobileStudentProfile,
   MobileStudentProfileUpdate,
@@ -1520,6 +1534,51 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.overview;
+    },
+
+    async getAdminUsers(
+      input: AdminUsersInput = {},
+    ): Promise<MobileAdminUserList> {
+      const params = new URLSearchParams();
+      if (input.limit !== undefined) params.set("limit", String(input.limit));
+      if (input.query) params.set("query", input.query);
+      if (input.role) params.set("role", input.role);
+      if (input.status) params.set("status", input.status);
+      if (input.cursor) params.set("cursor", input.cursor);
+      const query = params.toString();
+      const response = await authenticatedRequest(
+        `/admin/users${query ? `?${query}` : ""}`,
+        { method: "GET" },
+      );
+      const parsed = adminUsersResponseSchema.safeParse(await response.json());
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma lista de usuarios invalida.",
+          502,
+        );
+      }
+
+      return parsed.data.users;
+    },
+
+    async getAdminUser(userId: string): Promise<MobileAdminUserDetail> {
+      const response = await authenticatedRequest(
+        `/admin/users/${encodeURIComponent(userId)}`,
+        { method: "GET" },
+      );
+      const parsed = adminUserResponseSchema.safeParse(await response.json());
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou um usuario administrativo invalido.",
+          502,
+        );
+      }
+
+      return parsed.data.user;
     },
 
     async getModule(slug: string): Promise<MobileModuleData> {

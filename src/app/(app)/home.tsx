@@ -15,6 +15,11 @@ export default function HomeRoute() {
     <DashboardScreen
       name={user.name}
       onOpenModule={(slug) => {
+        if (user.role === "ADMIN" && slug === "users") {
+          router.push("/admin/users");
+          return;
+        }
+
         if (slug === "live-class") {
           router.push("/live-class");
           return;

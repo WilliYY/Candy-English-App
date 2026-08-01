@@ -27,6 +27,8 @@ teachers, sem expor respostas ou dados privados dos alunos. O Catty Learning da
 teacher envia sugestões pendentes para aprovação do Admin e
 personaliza temas somente dos alunos vinculados, usando a mesma validação e os
 mesmos registros do site, sem expor e-mail, mensagens ou memória interna.
+O ADMIN já possui gestão nativa de consulta de usuários, com busca, filtros,
+paginação e detalhe seguro de conta e vínculos, sem dados de senha ou sessão.
 Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme
