@@ -25,6 +25,11 @@ export default function HomeRoute() {
           return;
         }
 
+        if (user.role === "ADMIN" && slug === "finance") {
+          router.push("/admin/finance");
+          return;
+        }
+
         if (slug === "live-class") {
           router.push("/live-class");
           return;

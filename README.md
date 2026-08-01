@@ -37,6 +37,10 @@ agenda e prontidão para conversão. A conversão administrativa cria a conta
 `STUDENT` pela mesma transação do site, exige confirmação explícita quando
 agenda ou financeiro estão incompletos, impede sobrescrita concorrente e não
 guarda nem devolve a senha inicial.
+O Financeiro do ADMIN já possui visão mensal nativa por unidade, resumo de
+previsto, recebido, pendente, atrasado e cadastros incompletos, com busca,
+filtros, paginação e atualização conectada a cada 15 segundos. Essa visão não
+realiza cobranças e não envia CPF ou endereço ao celular.
 Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme

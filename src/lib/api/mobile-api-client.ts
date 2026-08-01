@@ -1,6 +1,11 @@
 import { z } from "zod";
 
 import {
+  adminFinanceResponseSchema,
+  type AdminFinanceInput,
+  type MobileAdminFinance,
+} from "@/lib/api/admin-finance-contracts";
+import {
   adminPreRegistrationConversionResponseSchema,
   adminPreRegistrationResponseSchema,
   adminPreRegistrationsResponseSchema,
@@ -54,6 +59,14 @@ import {
   type TeacherCattyLearningInput,
 } from "@/lib/api/teacher-catty-contracts";
 
+export type {
+  AdminFinanceInput,
+  MobileAdminFinance,
+  MobileAdminFinanceItem,
+  MobileAdminFinanceStatus,
+  MobileAdminFinanceSummary,
+  MobileAdminFinanceUnit,
+} from "@/lib/api/admin-finance-contracts";
 export type {
   AdminPreRegistrationsInput,
   MobileAdminPreRegistration,
@@ -1604,6 +1617,34 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.user;
+    },
+
+    async getAdminFinance(
+      input: AdminFinanceInput = {},
+    ): Promise<MobileAdminFinance> {
+      const search = new URLSearchParams();
+      if (input.limit !== undefined) search.set("limit", String(input.limit));
+      if (input.month !== undefined) search.set("month", String(input.month));
+      if (input.query) search.set("query", input.query);
+      if (input.status) search.set("status", input.status);
+      if (input.unit) search.set("unit", input.unit);
+      if (input.year !== undefined) search.set("year", String(input.year));
+      if (input.cursor) search.set("cursor", input.cursor);
+      const response = await authenticatedRequest(
+        `/admin/finance${search.size ? `?${search.toString()}` : ""}`,
+        { method: "GET" },
+      );
+      const parsed = adminFinanceResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou um resumo financeiro invalido.",
+          502,
+        );
+      }
+      return parsed.data.finance;
     },
 
     async getAdminPreRegistrations(input: AdminPreRegistrationsInput = {}) {

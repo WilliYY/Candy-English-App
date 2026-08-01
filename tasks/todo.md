@@ -89,7 +89,7 @@
 - [x] Redefinição de senha com revogação.
 - [x] Pré-cadastros completos.
 - [x] Conversão transacional.
-- [ ] Financeiro por unidade.
+- [x] Financeiro por unidade.
 - [ ] Pagamentos, parcelas, gastos e logs.
 - [ ] Agenda mensal e fila diária.
 - [ ] Presença, falta, reposição e histórico.

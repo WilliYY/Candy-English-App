@@ -2294,4 +2294,93 @@ describe("MobileApiClient", () => {
       },
     ]);
   });
+
+  it("loads the administrative finance overview by period and unit", async () => {
+    const memory = createMemoryStore({
+      ...sessionPayload("access-admin-finance"),
+      user: { ...sessionPayload().user, role: "ADMIN" },
+    });
+    const urls: string[] = [];
+    const summary = {
+      incompleteCount: 0,
+      overdueCents: 35_000,
+      overdueCount: 1,
+      paidCents: 0,
+      paidCount: 0,
+      pendingCents: 35_000,
+      pendingCount: 1,
+      studentsCount: 1,
+      totalCents: 35_000,
+    };
+    const fetcher = jest.fn(async (url: string) => {
+      urls.push(url);
+      return jsonResponse(200, {
+        finance: {
+          generatedAt: "2026-08-15T15:00:00.000Z",
+          items: [
+            {
+              amountCents: 35_000,
+              id: "payment/1",
+              installmentNumber: 1,
+              installmentsTotal: 12,
+              isPaid: false,
+              month: 8,
+              name: "Ana Candy",
+              note: null,
+              paidAt: null,
+              paymentDay: 10,
+              paymentMethod: "PIX",
+              status: "OVERDUE",
+              studentId: "student/1",
+              unit: "IVATE",
+              updatedAt: "2026-08-11T12:00:00.000Z",
+              year: 2026,
+            },
+          ],
+          nextCursor: null,
+          period: { month: 8, year: 2026 },
+          scopeSummary: summary,
+          total: 1,
+          unitSummaries: [
+            { ...summary, unit: "IVATE" },
+            {
+              ...summary,
+              overdueCents: 0,
+              overdueCount: 0,
+              pendingCents: 0,
+              pendingCount: 0,
+              studentsCount: 0,
+              totalCents: 0,
+              unit: "DOURADINA",
+            },
+          ],
+        },
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(
+      client.getAdminFinance({
+        limit: 25,
+        month: 8,
+        query: "Ana",
+        status: "OVERDUE",
+        unit: "IVATE",
+        year: 2026,
+      }),
+    ).resolves.toMatchObject({
+      items: [{ id: "payment/1", status: "OVERDUE" }],
+      scopeSummary: { overdueCents: 35_000 },
+      total: 1,
+    });
+    expect(urls).toEqual([
+      "https://candy.example/api/mobile/v1/admin/finance?limit=25&month=8&query=Ana&status=OVERDUE&unit=IVATE&year=2026",
+    ]);
+  });
 });
