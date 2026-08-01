@@ -994,6 +994,82 @@ describe("MobileApiClient", () => {
     });
   });
 
+  it("loads the private teacher Candy XP overview with bearer authentication", async () => {
+    const memory = createMemoryStore(sessionPayload("access-teacher-xp"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe("https://candy.example/api/mobile/v1/teacher/candy-xp");
+      expect(init?.method).toBe("GET");
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-teacher-xp",
+      );
+      return jsonResponse(200, {
+        candyXp: {
+          nextGoals: ["Corrigir uma submissão pendente."],
+          profile: {
+            badgeCount: 1,
+            level: 2,
+            longestStreakDays: 2,
+            progressPercent: 34,
+            progressXp: 60,
+            requiredXp: 175,
+            streakDays: 2,
+            totalXp: 180,
+            xpToNextLevel: 115,
+          },
+          ranking: {
+            currentUser: {
+              hasXp: true,
+              position: 1,
+              totalInCategory: 2,
+              totalXp: 180,
+              xpToNextLevel: 115,
+            },
+            generatedAt: "2026-08-01T21:00:00.000Z",
+            topEntries: [
+              {
+                isCurrentUser: true,
+                level: 2,
+                name: "Candy Teacher",
+                position: 1,
+                progressPercent: 34,
+                totalXp: 180,
+                xpToNextLevel: 115,
+              },
+            ],
+            totalRanked: 2,
+          },
+          recentEvents: [
+            {
+              occurredAt: "2026-08-01T20:00:00.000Z",
+              sourceLabel: "Feedbacks dados",
+              xp: 35,
+            },
+          ],
+          sources: [{ label: "Feedbacks dados", value: 1, xp: 35 }],
+          spotlightCard: {
+            description: "Corrigir respostas pendentes gera XP.",
+            status: "1 pendente(s)",
+            title: "Missões teacher",
+            unlocked: false,
+          },
+        },
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getTeacherCandyXp()).resolves.toMatchObject({
+      profile: { level: 2, totalXp: 180 },
+      ranking: { topEntries: [{ name: "Candy Teacher" }] },
+      spotlightCard: { title: "Missões teacher" },
+    });
+  });
+
   it("loads the private student Candy XP overview with bearer authentication", async () => {
     const memory = createMemoryStore(sessionPayload("access-candy-xp"));
     const fetcher = jest.fn(async (url: string, init?: RequestInit) => {

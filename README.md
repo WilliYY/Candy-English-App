@@ -21,8 +21,10 @@ posição compatível com o site, tarefas, correções e conquistas, além de ho
 `TEXT`/interativas com desenho, listening e envio já estão implementados. A
 teacher também acessa somente contratos gerais ou dos próprios alunos
 vinculados e converte pré-cadastros próprios/atribuídos com confirmação dupla,
-agenda e financeiro incompletos protegidos e repetição idempotente. Arquivos
-protegidos usam download autenticado, cache
+agenda e financeiro incompletos protegidos e repetição idempotente. O Candy XP
+da teacher sincroniza a jornada pedagógica e um ranking interno somente de
+teachers, sem expor respostas ou dados privados dos alunos. Arquivos protegidos
+usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme
 [`docs/spec.md`](docs/spec.md) e [`tasks/plan.md`](tasks/plan.md).

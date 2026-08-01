@@ -72,7 +72,7 @@
 - [x] Contratos permitidos.
 - [x] Pré-cadastros próprios/atribuídos.
 - [x] Conversão autorizada de pré-cadastro.
-- [ ] Candy XP permitido.
+- [x] Candy XP permitido.
 - [ ] Catty Learning e artefatos permitidos.
 - [x] Secretaria limitada.
 - [ ] Testes negativos de vínculo.

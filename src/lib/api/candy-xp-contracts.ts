@@ -116,6 +116,49 @@ export type MobileStudentCandyXp = z.infer<
   typeof candyXpResponseSchema
 >["candyXp"];
 
+export const teacherCandyXpResponseSchema = z
+  .object({
+    candyXp: z
+      .object({
+        nextGoals: z.array(z.string().min(1)).max(10),
+        profile: candyXpProfileSchema,
+        ranking: candyXpRankingSchema,
+        recentEvents: z.array(
+          z
+            .object({
+              occurredAt: z.string().datetime(),
+              sourceLabel: z.string().min(1),
+              xp: nonNegativeInteger,
+            })
+            .strict(),
+        ),
+        sources: z.array(
+          z
+            .object({
+              label: z.string().min(1),
+              value: nonNegativeInteger,
+              xp: nonNegativeInteger,
+            })
+            .strict(),
+        ),
+        spotlightCard: z
+          .object({
+            description: z.string().min(1),
+            status: z.string().min(1),
+            title: z.string().min(1),
+            unlocked: z.boolean(),
+          })
+          .strict(),
+      })
+      .strict(),
+    ok: z.literal(true),
+  })
+  .strict();
+
+export type MobileTeacherCandyXp = z.infer<
+  typeof teacherCandyXpResponseSchema
+>["candyXp"];
+
 const candyXpActivitySubmissionDetailSchema = candyXpSubmissionSchema
   .extend({
     answers: z.array(candyXpAnswerSchema).max(140),

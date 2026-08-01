@@ -18,9 +18,11 @@ import {
   candyXpActivityActionResponseSchema,
   candyXpActivityResponseSchema,
   candyXpResponseSchema,
+  teacherCandyXpResponseSchema,
   type MobileCandyXpActivity,
   type MobileCandyXpAnswer,
   type MobileStudentCandyXp,
+  type MobileTeacherCandyXp,
 } from "@/lib/api/candy-xp-contracts";
 
 export type {
@@ -32,6 +34,7 @@ export type {
   MobileCandyXpActivityAction,
   MobileCandyXpAnswer,
   MobileStudentCandyXp,
+  MobileTeacherCandyXp,
 } from "@/lib/api/candy-xp-contracts";
 
 type Fetcher = (url: string, init?: RequestInit) => Promise<Response>;
@@ -1297,6 +1300,23 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         );
       }
 
+      return parsed.data.candyXp;
+    },
+
+    async getTeacherCandyXp(): Promise<MobileTeacherCandyXp> {
+      const response = await authenticatedRequest("/teacher/candy-xp", {
+        method: "GET",
+      });
+      const parsed = teacherCandyXpResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou um Candy XP teacher inválido.",
+          502,
+        );
+      }
       return parsed.data.candyXp;
     },
 
