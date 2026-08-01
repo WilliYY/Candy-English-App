@@ -75,8 +75,11 @@
 - [x] Candy XP permitido.
 - [x] Catty Learning e artefatos permitidos.
 - [x] Secretaria limitada.
-- [ ] Testes negativos de vínculo.
-- [ ] Smoke completo `TEACHER`.
+- [x] Testes negativos de vínculo.
+  - Verificação: `npm.cmd run verify:mobile-teacher` no backend e matriz em
+    `docs/teacher-smoke.md`.
+- [x] Smoke completo `TEACHER`.
+  - Verificação: `npm.cmd run verify:teacher`.
 
 ## ADMIN
 

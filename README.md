@@ -40,6 +40,8 @@ demais operações de escrita segue conforme
   autenticação e armazenamento de tokens.
 - [`docs/distribuicao.md`](docs/distribuicao.md): comunicação com o site,
   previews, downloads, lojas e atualizações.
+- [`docs/teacher-smoke.md`](docs/teacher-smoke.md): matriz de isolamento e
+  verificação automatizada completa do perfil teacher.
 - [`tasks/plan.md`](tasks/plan.md): fases e checkpoints.
 - [`tasks/todo.md`](tasks/todo.md): tarefas verificáveis.
 
@@ -78,6 +80,7 @@ npm.cmd run typecheck
 npm.cmd run lint
 npm.cmd run doctor
 npx.cmd expo install --check
+npm.cmd run verify:teacher
 ```
 
 O projeto usa Expo Router em `src/app`, TypeScript estrito, Jest Expo e os
