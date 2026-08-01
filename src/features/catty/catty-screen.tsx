@@ -40,6 +40,7 @@ type CattyClient = {
 type CattyScreenProps = {
   client?: CattyClient;
   onBack: () => void;
+  onOpenTeacherTools?: () => void;
   role: Role;
 };
 
@@ -59,6 +60,7 @@ function contextForRole(role: Role): MobileCattyContext {
 export function CattyScreen({
   client,
   onBack,
+  onOpenTeacherTools,
   role,
 }: CattyScreenProps) {
   const api = useMemo(() => client ?? getMobileApi(), [client]);
@@ -139,6 +141,16 @@ export function CattyScreen({
               Historico protegido e compartilhado com o site
             </Text>
           </View>
+          {role === "TEACHER" && onOpenTeacherTools ? (
+            <Pressable
+              accessibilityLabel="Abrir Catty Learning"
+              accessibilityRole="button"
+              onPress={onOpenTeacherTools}
+              style={styles.teacherToolsButton}
+            >
+              <Text style={styles.teacherToolsText}>Learning</Text>
+            </Pressable>
+          ) : null}
         </View>
 
         <ScrollView

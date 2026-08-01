@@ -24,6 +24,14 @@ import {
   type MobileStudentCandyXp,
   type MobileTeacherCandyXp,
 } from "@/lib/api/candy-xp-contracts";
+import {
+  teacherCattyManagementResponseSchema,
+  teacherCattyMutationResponseSchema,
+  type MobileTeacherCattyManagement,
+  type TeacherCattyArtifactInput,
+  type TeacherCattyArtifactStatusInput,
+  type TeacherCattyLearningInput,
+} from "@/lib/api/teacher-catty-contracts";
 
 export type {
   MobileStudentProfile,
@@ -36,6 +44,14 @@ export type {
   MobileStudentCandyXp,
   MobileTeacherCandyXp,
 } from "@/lib/api/candy-xp-contracts";
+export type {
+  MobileTeacherCattyArtifactStatus,
+  MobileTeacherCattyLearningCategory,
+  MobileTeacherCattyManagement,
+  TeacherCattyArtifactInput,
+  TeacherCattyArtifactStatusInput,
+  TeacherCattyLearningInput,
+} from "@/lib/api/teacher-catty-contracts";
 
 type Fetcher = (url: string, init?: RequestInit) => Promise<Response>;
 
@@ -2178,6 +2194,81 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.threads;
+    },
+
+    async getTeacherCattyManagement(): Promise<MobileTeacherCattyManagement> {
+      const response = await authenticatedRequest(
+        "/teacher/catty/management",
+        { method: "GET" },
+      );
+      const parsed = teacherCattyManagementResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou um Catty Learning invalido.",
+          502,
+        );
+      }
+      return parsed.data.management;
+    },
+
+    async createTeacherCattyLearning(input: TeacherCattyLearningInput) {
+      const response = await authenticatedRequest(
+        "/teacher/catty/learning",
+        { body: JSON.stringify(input), method: "POST" },
+      );
+      const parsed = teacherCattyMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou o aprendizado da Catty.",
+          502,
+        );
+      }
+      return parsed.data;
+    },
+
+    async saveTeacherCattyArtifact(input: TeacherCattyArtifactInput) {
+      const response = await authenticatedRequest(
+        "/teacher/catty/artifacts",
+        { body: JSON.stringify(input), method: "PUT" },
+      );
+      const parsed = teacherCattyMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou o artefato da Catty.",
+          502,
+        );
+      }
+      return parsed.data;
+    },
+
+    async updateTeacherCattyArtifactStatus(
+      artifactId: string,
+      input: TeacherCattyArtifactStatusInput,
+    ) {
+      const response = await authenticatedRequest(
+        `/teacher/catty/artifacts/${encodeURIComponent(artifactId)}`,
+        { body: JSON.stringify(input), method: "PATCH" },
+      );
+      const parsed = teacherCattyMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou o status do artefato.",
+          502,
+        );
+      }
+      return parsed.data;
     },
 
     async getCattyHistory(

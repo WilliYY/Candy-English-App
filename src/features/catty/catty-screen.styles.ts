@@ -49,6 +49,20 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
+  teacherToolsButton: {
+    alignItems: "center",
+    alignSelf: "center",
+    backgroundColor: colors.brand,
+    borderRadius: radii.pill,
+    justifyContent: "center",
+    minHeight: 40,
+    paddingHorizontal: spacing.sm,
+  },
+  teacherToolsText: {
+    color: colors.surface,
+    fontSize: 12,
+    fontWeight: "800",
+  },
   eyebrow: {
     color: colors.focus,
     fontSize: typeScale.caption,

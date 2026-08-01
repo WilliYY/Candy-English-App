@@ -14,6 +14,11 @@ export default function CattyRoute() {
   return (
     <CattyScreen
       onBack={() => router.back()}
+      onOpenTeacherTools={
+        user.role === "TEACHER"
+          ? () => router.push("/teacher/catty")
+          : undefined
+      }
       role={user.role}
     />
   );

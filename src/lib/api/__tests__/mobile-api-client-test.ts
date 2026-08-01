@@ -1341,6 +1341,139 @@ describe("MobileApiClient", () => {
     });
   });
 
+  it("manages only the teacher Catty Learning and linked-student artifacts", async () => {
+    const memory = createMemoryStore(sessionPayload("access-teacher-catty"));
+    const requests: { body: unknown; method: string; url: string }[] = [];
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-teacher-catty",
+      );
+      requests.push({
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        method: init?.method ?? "GET",
+        url,
+      });
+
+      if (url.endsWith("/teacher/catty/management")) {
+        return jsonResponse(200, {
+          management: {
+            approvedLearningCount: 4,
+            artifacts: [
+              {
+                catchphrases: ["Level up!"],
+                emojis: ["🎮"],
+                example: "Gaming vocabulary",
+                id: "artifact-1",
+                isPrimary: true,
+                label: "Games",
+                sounds: ["pop"],
+                status: "ACTIVE",
+                studentId: "student-1",
+                themeId: "games",
+                toneRule: "Keep it light.",
+                updatedAt: "2026-08-01T12:00:00.000Z",
+              },
+            ],
+            learningCategories: ["VOCABULARY", "TEACHER_GUIDANCE"],
+            learningItems: [
+              {
+                badReply: null,
+                category: "VOCABULARY",
+                createdAt: "2026-08-01T12:00:00.000Z",
+                id: "learning-1",
+                idealReply: null,
+                intent: null,
+                notes: "Explain with one short example.",
+                status: "PENDING",
+                tags: ["vocabulary"],
+                title: "New word",
+                updatedAt: "2026-08-01T12:00:00.000Z",
+                userPrompt: "What does brave mean?",
+              },
+            ],
+            students: [{ id: "student-1", name: "Ana" }],
+            themeOptions: [
+              {
+                catchphrases: ["Level up!"],
+                emojis: ["🎮"],
+                id: "games",
+                label: "Games",
+                sounds: ["pop"],
+              },
+            ],
+          },
+          ok: true,
+        });
+      }
+
+      return jsonResponse(url.endsWith("/teacher/catty/learning") ? 201 : 200, {
+        message: "Operacao confirmada.",
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getTeacherCattyManagement()).resolves.toMatchObject({
+      artifacts: [{ studentId: "student-1" }],
+      students: [{ id: "student-1", name: "Ana" }],
+    });
+    await client.createTeacherCattyLearning({
+      category: "VOCABULARY",
+      notes: "Explain with one short example.",
+      title: "New word",
+    });
+    await client.saveTeacherCattyArtifact({
+      catchphrasesText: "Level up!",
+      emojisText: "🎮",
+      label: "Games",
+      status: "ACTIVE",
+      targetUserId: "student-1",
+      themeId: "games",
+    });
+    await client.updateTeacherCattyArtifactStatus("artifact/1", {
+      status: "DISABLED",
+    });
+
+    expect(requests).toEqual([
+      {
+        body: null,
+        method: "GET",
+        url: "https://candy.example/api/mobile/v1/teacher/catty/management",
+      },
+      {
+        body: {
+          category: "VOCABULARY",
+          notes: "Explain with one short example.",
+          title: "New word",
+        },
+        method: "POST",
+        url: "https://candy.example/api/mobile/v1/teacher/catty/learning",
+      },
+      {
+        body: {
+          catchphrasesText: "Level up!",
+          emojisText: "🎮",
+          label: "Games",
+          status: "ACTIVE",
+          targetUserId: "student-1",
+          themeId: "games",
+        },
+        method: "PUT",
+        url: "https://candy.example/api/mobile/v1/teacher/catty/artifacts",
+      },
+      {
+        body: { status: "DISABLED" },
+        method: "PATCH",
+        url: "https://candy.example/api/mobile/v1/teacher/catty/artifacts/artifact%2F1",
+      },
+    ]);
+  });
+
   it("loads the authenticated live-class maintenance state", async () => {
     const memory = createMemoryStore(sessionPayload("access-live-class"));
     const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
