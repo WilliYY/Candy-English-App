@@ -20,6 +20,11 @@ export default function HomeRoute() {
           return;
         }
 
+        if (user.role === "ADMIN" && slug === "secretary") {
+          router.push("/admin/pre-registrations");
+          return;
+        }
+
         if (slug === "live-class") {
           router.push("/live-class");
           return;

@@ -2111,4 +2111,103 @@ describe("MobileApiClient", () => {
       },
     ]);
   });
+
+  it("lists and loads complete administrative pre-registrations", async () => {
+    const memory = createMemoryStore({
+      ...sessionPayload("access-admin-pre-registrations"),
+      user: { ...sessionPayload().user, role: "ADMIN" },
+    });
+    const urls: string[] = [];
+    const listItem = {
+      assignedTeacherName: "Teacher Candy",
+      converted: false,
+      createdAt: "2026-08-01T10:00:00.000Z",
+      email: "ana@example.com",
+      fullName: "Ana Candy",
+      id: "pre/1",
+      phone: "44999999999",
+      status: "READY_TO_CONVERT",
+      statusNote: "Documentos conferidos",
+      unit: "IVATE",
+      updatedAt: "2026-08-01T12:00:00.000Z",
+    };
+    const fetcher = jest.fn(async (url: string) => {
+      urls.push(url);
+      if (url.includes("pre%2F1")) {
+        return jsonResponse(200, {
+          ok: true,
+          preRegistration: {
+            address: "Rua Candy, 10",
+            agenda: { complete: true, days: ["Seg", "Qua"], time: "19:00" },
+            assignedTeacherName: "Teacher Candy",
+            birthDate: "2010-05-20",
+            canConvert: true,
+            city: "Ivaté",
+            converted: false,
+            convertedUser: null,
+            createdAt: listItem.createdAt,
+            createdBy: { name: "Admin Candy", role: "ADMIN" },
+            email: listItem.email,
+            englishGoal: "Conversacao",
+            estimatedLevel: "A2",
+            finance: { complete: true },
+            fullName: listItem.fullName,
+            guardianDocument: "12345678900",
+            guardianName: "Maria Candy",
+            guardianPhone: "44977777777",
+            id: listItem.id,
+            installmentsTotal: 12,
+            notes: "Prefere aulas online",
+            paymentDay: 10,
+            paymentMethod: "PIX",
+            phone: listItem.phone,
+            reviewedAt: null,
+            reviewedByName: null,
+            secondaryContact: null,
+            status: listItem.status,
+            statusNote: listItem.statusNote,
+            studentPhone: "44988888888",
+            tuitionCents: 35000,
+            unit: listItem.unit,
+            updatedAt: listItem.updatedAt,
+          },
+        });
+      }
+      return jsonResponse(200, {
+        ok: true,
+        preRegistrations: {
+          generatedAt: "2026-08-01T13:00:00.000Z",
+          items: [listItem],
+          nextCursor: null,
+          total: 1,
+        },
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(
+      client.getAdminPreRegistrations({
+        limit: 25,
+        query: "Ana Candy",
+        status: "OPEN",
+        unit: "IVATE",
+      }),
+    ).resolves.toMatchObject({ items: [{ id: "pre/1" }], total: 1 });
+    await expect(
+      client.getAdminPreRegistration("pre/1"),
+    ).resolves.toMatchObject({
+      agenda: { complete: true, days: ["Seg", "Qua"] },
+      guardianName: "Maria Candy",
+      id: "pre/1",
+    });
+    expect(urls).toEqual([
+      "https://candy.example/api/mobile/v1/admin/pre-registrations?limit=25&query=Ana+Candy&status=OPEN&unit=IVATE",
+      "https://candy.example/api/mobile/v1/admin/pre-registrations/pre%2F1",
+    ]);
+  });
 });

@@ -31,6 +31,9 @@ O ADMIN já possui gestão nativa de usuários, com busca, filtros, paginação,
 detalhe seguro, criação, edição, ativação/desativação confirmada e redefinição
 de senha com revogação imediata das sessões, sem expor credenciais ou dados de
 sessão e com proteção contra conflitos com o site.
+Também possui fila completa de pré-cadastros, com busca, etapa, unidade,
+paginação e detalhe administrativo de contato, responsável, financeiro,
+agenda e prontidão para conversão.
 Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme

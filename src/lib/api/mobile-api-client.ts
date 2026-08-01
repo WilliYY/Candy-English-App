@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 import {
+  adminPreRegistrationResponseSchema,
+  adminPreRegistrationsResponseSchema,
+  type AdminPreRegistrationsInput,
+  type MobileAdminPreRegistration,
+} from "@/lib/api/admin-pre-registrations-contracts";
+import {
   adminUserMutationResponseSchema,
   adminUserResponseSchema,
   adminUserStatusResponseSchema,
@@ -46,6 +52,14 @@ import {
   type TeacherCattyLearningInput,
 } from "@/lib/api/teacher-catty-contracts";
 
+export type {
+  AdminPreRegistrationsInput,
+  MobileAdminPreRegistration,
+  MobileAdminPreRegistrationList,
+  MobileAdminPreRegistrationListItem,
+  MobileAdminPreRegistrationStatus,
+  MobileAdminPreRegistrationUnit,
+} from "@/lib/api/admin-pre-registrations-contracts";
 export type {
   AdminUserCreateInput,
   AdminUserStatusInput,
@@ -1588,6 +1602,50 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.user;
+    },
+
+    async getAdminPreRegistrations(input: AdminPreRegistrationsInput = {}) {
+      const search = new URLSearchParams();
+      if (input.limit) search.set("limit", String(input.limit));
+      if (input.query) search.set("query", input.query);
+      if (input.status) search.set("status", input.status);
+      if (input.unit) search.set("unit", input.unit);
+      if (input.cursor) search.set("cursor", input.cursor);
+      const response = await authenticatedRequest(
+        `/admin/pre-registrations${search.size ? `?${search.toString()}` : ""}`,
+        { method: "GET" },
+      );
+      const parsed = adminPreRegistrationsResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma fila de pre-cadastros invalida.",
+          502,
+        );
+      }
+      return parsed.data.preRegistrations;
+    },
+
+    async getAdminPreRegistration(
+      requestId: string,
+    ): Promise<MobileAdminPreRegistration> {
+      const response = await authenticatedRequest(
+        `/admin/pre-registrations/${encodeURIComponent(requestId)}`,
+        { method: "GET" },
+      );
+      const parsed = adminPreRegistrationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou um pre-cadastro administrativo invalido.",
+          502,
+        );
+      }
+      return parsed.data.preRegistration;
     },
 
     async createAdminUser(input: AdminUserCreateInput) {

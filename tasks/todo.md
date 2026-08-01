@@ -87,7 +87,7 @@
 - [x] Usuários: listar, buscar e detalhar.
 - [x] Criar, editar, ativar e desativar usuário.
 - [x] Redefinição de senha com revogação.
-- [ ] Pré-cadastros completos.
+- [x] Pré-cadastros completos.
 - [ ] Conversão transacional.
 - [ ] Financeiro por unidade.
 - [ ] Pagamentos, parcelas, gastos e logs.

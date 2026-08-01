@@ -83,7 +83,7 @@ describe("Admin user screens", () => {
     });
 
     await fireEvent.press(
-      view.getByLabelText("Abrir usuario Student Candy"),
+      await view.findByLabelText("Abrir usuario Student Candy"),
     );
     expect(onOpenUser).toHaveBeenCalledWith("user-1");
   });
