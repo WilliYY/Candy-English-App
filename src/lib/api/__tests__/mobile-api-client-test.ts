@@ -1505,6 +1505,85 @@ describe("MobileApiClient", () => {
     ]);
   });
 
+  it("loads and converts an authorized teacher pre-registration", async () => {
+    const memory = createMemoryStore(sessionPayload("access-conversion"));
+    const requests: { body: unknown; method: string | undefined; url: string }[] = [];
+    const preRegistration = {
+      agenda: { complete: false, days: null, time: null },
+      canConvert: true,
+      converted: false,
+      email: "student@example.com",
+      englishGoal: "Conversation",
+      estimatedLevel: "A2",
+      finance: { complete: false },
+      fullName: "Student One",
+      id: "request/1",
+      phone: "44999990000",
+      status: "READY_TO_CONVERT" as const,
+      statusNote: null,
+      unit: "IVATE" as const,
+      updatedAt: "2026-08-01T20:00:00.000Z",
+    };
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-conversion",
+      );
+      requests.push({
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        method: init?.method,
+        url,
+      });
+      if (url.endsWith("/convert")) {
+        return jsonResponse(200, {
+          message: "Aluno convertido com AVA.",
+          ok: true,
+          preRegistration: {
+            ...preRegistration,
+            canConvert: false,
+            converted: true,
+            status: "APPROVED",
+          },
+        });
+      }
+      return jsonResponse(200, { ok: true, preRegistration });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+    const conversion = {
+      confirmConversion: true as const,
+      confirmMissingAgendaData: true,
+      emailForLogin: "new@example.com",
+      initialPassword: "StrongPass123",
+      operationId: "11111111-1111-4111-8111-111111111111",
+    };
+
+    await expect(
+      client.getTeacherPreRegistration("request/1"),
+    ).resolves.toMatchObject({ id: "request/1", canConvert: true });
+    await expect(
+      client.convertTeacherPreRegistration("request/1", conversion),
+    ).resolves.toMatchObject({
+      message: "Aluno convertido com AVA.",
+      preRegistration: { canConvert: false, converted: true },
+    });
+    expect(requests).toEqual([
+      {
+        body: null,
+        method: "GET",
+        url: "https://candy.example/api/mobile/v1/teacher/pre-registrations/request%2F1",
+      },
+      {
+        body: conversion,
+        method: "POST",
+        url: "https://candy.example/api/mobile/v1/teacher/pre-registrations/request%2F1/convert",
+      },
+    ]);
+  });
+
   it("loads the teacher submission queue and protected submission detail", async () => {
     const memory = createMemoryStore(sessionPayload("access-submissions"));
     const fetcher = jest.fn(async (url: string, init?: RequestInit) => {

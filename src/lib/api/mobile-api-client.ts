@@ -558,6 +558,67 @@ export type MobileTeacherInteractiveFieldUpdateInput = z.infer<
   typeof teacherInteractiveFieldUpdateInputSchema
 >;
 
+const teacherPreRegistrationSchema = z
+  .object({
+    agenda: z
+      .object({
+        complete: z.boolean(),
+        days: z.string().min(1).nullable(),
+        time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable(),
+      })
+      .strict(),
+    canConvert: z.boolean(),
+    converted: z.boolean(),
+    email: z.string().email().nullable(),
+    englishGoal: z.string().min(1),
+    estimatedLevel: z.string().min(1).nullable(),
+    finance: z.object({ complete: z.boolean() }).strict(),
+    fullName: z.string().min(1),
+    id: z.string().min(1),
+    phone: z.string().min(1),
+    status: z.enum([
+      "APPROVED",
+      "CONTACTED",
+      "PENDING",
+      "READY_TO_CONVERT",
+      "REJECTED",
+      "WAITING_PAYMENT",
+    ]),
+    statusNote: z.string().nullable(),
+    unit: z.enum(["DOURADINA", "IVATE"]),
+    updatedAt: z.string().datetime(),
+  })
+  .strict();
+
+const teacherPreRegistrationResponseSchema = z
+  .object({ ok: z.literal(true), preRegistration: teacherPreRegistrationSchema })
+  .strict();
+
+const teacherPreRegistrationConversionInputSchema = z
+  .object({
+    confirmConversion: z.literal(true),
+    confirmMissingAgendaData: z.boolean(),
+    emailForLogin: z.string().trim().email().max(254),
+    initialPassword: z.string().trim().min(8).max(120),
+    operationId: z.string().uuid(),
+  })
+  .strict();
+
+const teacherPreRegistrationConversionResponseSchema = z
+  .object({
+    message: z.string().min(1),
+    ok: z.literal(true),
+    preRegistration: teacherPreRegistrationSchema.nullable(),
+  })
+  .strict();
+
+export type MobileTeacherPreRegistration = z.infer<
+  typeof teacherPreRegistrationSchema
+>;
+export type MobileTeacherPreRegistrationConversionInput = z.infer<
+  typeof teacherPreRegistrationConversionInputSchema
+>;
+
 const teacherSubmissionStatusSchema = z.enum([
   "RETURNED",
   "REVIEWED",
@@ -1789,6 +1850,58 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         );
       }
       return { editor: parsed.data.editor, message: parsed.data.message };
+    },
+
+    async getTeacherPreRegistration(
+      requestId: string,
+    ): Promise<MobileTeacherPreRegistration> {
+      const response = await authenticatedRequest(
+        `/teacher/pre-registrations/${encodeURIComponent(requestId)}`,
+        { method: "GET" },
+      );
+      const parsed = teacherPreRegistrationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return parsed.data.preRegistration;
+    },
+
+    async convertTeacherPreRegistration(
+      requestId: string,
+      input: MobileTeacherPreRegistrationConversionInput,
+    ) {
+      const validated = teacherPreRegistrationConversionInputSchema.safeParse(input);
+      if (!validated.success) {
+        throw new ApiError(
+          "INVALID_REQUEST",
+          "Revise email, senha e confirmações.",
+          400,
+        );
+      }
+      const response = await authenticatedRequest(
+        `/teacher/pre-registrations/${encodeURIComponent(requestId)}/convert`,
+        { body: JSON.stringify(validated.data), method: "POST" },
+      );
+      const parsed = teacherPreRegistrationConversionResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return {
+        message: parsed.data.message,
+        preRegistration: parsed.data.preRegistration,
+      };
     },
 
     async getTeacherSubmissions(): Promise<MobileTeacherSubmissionQueue> {

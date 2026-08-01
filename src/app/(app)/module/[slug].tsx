@@ -12,7 +12,10 @@ export default function ModuleRoute() {
     (user?.role === "STUDENT" &&
       (slug === "contracts" || slug === "homeworks" || slug === "lessons")) ||
     (user?.role === "TEACHER" &&
-      (slug === "contracts" || slug === "homeworks" || slug === "lessons"));
+      (slug === "contracts" ||
+        slug === "homeworks" ||
+        slug === "lessons" ||
+        slug === "secretary"));
 
   function openItem(item: { id: string }) {
     if (slug === "contracts") {
@@ -27,6 +30,14 @@ export default function ModuleRoute() {
       router.push({
         params: { lessonId: item.id },
         pathname: "/lesson/[lessonId]",
+      });
+      return;
+    }
+
+    if (user?.role === "TEACHER" && slug === "secretary") {
+      router.push({
+        params: { requestId: item.id },
+        pathname: "/teacher/pre-registration/[requestId]",
       });
       return;
     }

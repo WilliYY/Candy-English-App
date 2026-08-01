@@ -71,7 +71,7 @@
 - [x] Mensagens com alunos vinculados.
 - [x] Contratos permitidos.
 - [x] Pré-cadastros próprios/atribuídos.
-- [ ] Conversão autorizada de pré-cadastro.
+- [x] Conversão autorizada de pré-cadastro.
 - [ ] Candy XP permitido.
 - [ ] Catty Learning e artefatos permitidos.
 - [x] Secretaria limitada.
