@@ -63,6 +63,7 @@ const roleContent: Record<
       { slug: "finance", label: "Financeiro", description: "Unidades, parcelas e despesas" },
       { slug: "agenda", label: "Agenda", description: "Aulas, presença e reposições" },
       { slug: "contracts", label: "Contratos", description: "Envio, consulta e PDFs protegidos" },
+      { slug: "operations", label: "Manutenção", description: "Status seguro e acesso dos alunos" },
       { slug: "ava", label: "AVA", description: "Supervisão pedagógica completa" },
       { slug: "reports", label: "Relatórios", description: "Indicadores operacionais" },
     ],

@@ -2835,4 +2835,89 @@ describe("MobileApiClient", () => {
     expect(requests[2]!.body?.get("title")).toBe("Contrato novo");
     expect(requests[2]!.body?.get("contract")).not.toBeNull();
   });
+
+  it("reads safe ADMIN operations and confirms maintenance with Bearer auth", async () => {
+    const memory = createMemoryStore({
+      ...sessionPayload("access-admin-operations"),
+      user: { ...sessionPayload().user, role: "ADMIN" },
+    });
+    const maintenance = {
+      enabled: false,
+      updatedAt: "2026-08-01T18:00:00.000Z",
+    };
+    const responses = [
+      {
+        ok: true,
+        operations: {
+          generatedAt: "2026-08-01T19:00:00.000Z",
+          maintenance,
+          storage: { usageBytes: 12_345 },
+        },
+      },
+      {
+        message: "Manutencao atualizada com sucesso.",
+        ok: true,
+        result: {
+          changed: true,
+          maintenance: {
+            enabled: true,
+            updatedAt: "2026-08-01T19:01:00.000Z",
+          },
+          replayed: false,
+        },
+      },
+    ];
+    const requests: {
+      authorization: string | null;
+      body: unknown;
+      method: string;
+      url: string;
+    }[] = [];
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        authorization: new Headers(init?.headers).get("authorization"),
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        method: init?.method ?? "GET",
+        url,
+      });
+      return jsonResponse(200, responses.shift());
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+    const input = {
+      confirmChange: true as const,
+      enabled: true,
+      expectedUpdatedAt: maintenance.updatedAt,
+      operationId: "66666666-6666-4666-8666-666666666666",
+    };
+
+    await expect(client.getAdminOperations()).resolves.toMatchObject({
+      maintenance: { enabled: false },
+      storage: { usageBytes: 12_345 },
+    });
+    await expect(client.updateAdminMaintenance(input)).resolves.toMatchObject({
+      maintenance: { enabled: true },
+      message: "Manutencao atualizada com sucesso.",
+      replayed: false,
+    });
+    expect(requests).toEqual([
+      {
+        authorization: "Bearer access-admin-operations",
+        body: null,
+        method: "GET",
+        url: "https://candy.example/api/mobile/v1/admin/operations",
+      },
+      {
+        authorization: "Bearer access-admin-operations",
+        body: input,
+        method: "PATCH",
+        url: "https://candy.example/api/mobile/v1/admin/operations",
+      },
+    ]);
+    expect(requests.every((request) => !request.url.includes("access-admin-operations"))).toBe(true);
+  });
 });

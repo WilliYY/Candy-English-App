@@ -58,6 +58,11 @@ de documentos gerais/vinculados, seleção de aluno ativo e upload PDF confirmad
 e idempotente. O detalhe baixa pelo Bearer token sem colocá-lo na URL, valida o
 arquivo e usa cache temporário apagado no logout. Como site e app usam o mesmo
 backend, o contrato enviado em um aparece no outro automaticamente.
+O ADMIN também possui Manutenção nativa: o estado global é o mesmo do painel
+web, atualiza a cada 15 segundos e só muda depois de confirmação. Conflitos com
+outro aparelho são detectados e retries usam a mesma operação idempotente. O
+celular recebe apenas o uso total do armazenamento; APIs, senhas, caminhos de
+arquivos e detalhes internos continuam exclusivos do site.
 Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme
@@ -75,6 +80,8 @@ demais operações de escrita segue conforme
   verificação automatizada completa do perfil teacher.
 - [`docs/admin-contracts.md`](docs/admin-contracts.md): catálogo, envio e
   download protegido de contratos no perfil ADMIN.
+- [`docs/admin-operations.md`](docs/admin-operations.md): manutenção
+  compartilhada e status operacional seguro no perfil ADMIN.
 - [`tasks/plan.md`](tasks/plan.md): fases e checkpoints.
 - [`tasks/todo.md`](tasks/todo.md): tarefas verificáveis.
 

@@ -12,4 +12,10 @@ describe("DashboardScreen", () => {
       expect.objectContaining({ label: "Contratos", slug: "contracts" }),
     );
   });
+
+  it("offers safe operational maintenance to ADMIN", () => {
+    expect(getDashboardModules("ADMIN")).toContainEqual(
+      expect.objectContaining({ label: "Manutenção", slug: "operations" }),
+    );
+  });
 });

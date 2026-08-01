@@ -94,7 +94,7 @@
 - [x] Agenda mensal e fila diária.
 - [x] Presença, falta, reposição e histórico.
 - [x] Contratos.
-- [ ] Manutenção e opções operacionais seguras.
+- [x] Manutenção e opções operacionais seguras.
 - [ ] Candy XP administrativo.
 - [ ] Administração permitida da Catty.
 - [ ] Supervisão das áreas teacher/student.

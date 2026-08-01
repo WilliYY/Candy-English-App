@@ -24,6 +24,13 @@ import {
   type MobileAdminContractCatalog,
 } from "@/lib/api/admin-contracts-contracts";
 import {
+  adminMaintenanceMutationResponseSchema,
+  adminOperationsResponseSchema,
+  type AdminMaintenanceInput,
+  type AdminMaintenanceMutation,
+  type MobileAdminOperations,
+} from "@/lib/api/admin-operations-contracts";
+import {
   adminFinanceActivityResponseSchema,
   adminFinanceExpenseMutationResponseSchema,
   adminFinancePaymentMutationResponseSchema,
@@ -115,6 +122,11 @@ export type {
   MobileAdminContract,
   MobileAdminContractCatalog,
 } from "@/lib/api/admin-contracts-contracts";
+export type {
+  AdminMaintenanceInput,
+  AdminMaintenanceMutation,
+  MobileAdminOperations,
+} from "@/lib/api/admin-operations-contracts";
 export type {
   AdminFinanceActivityInput,
   AdminFinanceExpenseCreateInput,
@@ -1815,6 +1827,43 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         message: parsed.data.message,
         replayed: parsed.data.result.replayed,
       };
+    },
+
+    async getAdminOperations(): Promise<MobileAdminOperations> {
+      const response = await authenticatedRequest("/admin/operations", {
+        method: "GET",
+      });
+      const parsed = adminOperationsResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou um status operacional invalido.",
+          502,
+        );
+      }
+      return parsed.data.operations;
+    },
+
+    async updateAdminMaintenance(
+      input: AdminMaintenanceInput,
+    ): Promise<AdminMaintenanceMutation> {
+      const response = await authenticatedRequest("/admin/operations", {
+        body: JSON.stringify(input),
+        method: "PATCH",
+      });
+      const parsed = adminMaintenanceMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou a alteracao de manutencao.",
+          502,
+        );
+      }
+      return { ...parsed.data.result, message: parsed.data.message };
     },
 
     async getAdminAgendaLesson(
