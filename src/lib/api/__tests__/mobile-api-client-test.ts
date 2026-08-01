@@ -298,6 +298,68 @@ describe("MobileApiClient", () => {
     expect(lesson.materials[0]?.type).toBe("LINK");
   });
 
+  it("loads a lesson owned by the authenticated teacher", async () => {
+    const memory = createMemoryStore(sessionPayload("access-teacher-lesson"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/teacher/lessons/lesson%2F1",
+      );
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-teacher-lesson",
+      );
+
+      return jsonResponse(200, {
+        lesson: {
+          description: "Practice introductions.",
+          homeworks: [
+            {
+              dueDate: "2026-08-05T12:00:00.000Z",
+              id: "homework-1",
+              status: "DRAFT",
+              title: "Introduce yourself",
+            },
+          ],
+          id: "lesson/1",
+          materials: [
+            {
+              content: null,
+              id: "material-1",
+              title: "Pronunciation guide",
+              type: "LINK",
+              url: "https://example.com/guide",
+            },
+          ],
+          scheduledAt: "2026-08-01T12:00:00.000Z",
+          status: "DRAFT",
+          studentName: "Candy Student",
+          teacherName: "Candy Teacher",
+          title: "Introductions",
+          vocabularyItems: [
+            {
+              example: "Nice to meet you.",
+              id: "word-1",
+              term: "meet",
+              translation: "conhecer",
+            },
+          ],
+        },
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    const lesson = await client.getTeacherLesson("lesson/1");
+
+    expect(lesson.status).toBe("DRAFT");
+    expect(lesson.studentName).toBe("Candy Student");
+    expect(lesson.homeworks[0]?.status).toBe("DRAFT");
+  });
+
   it("loads an authorized student homework detail", async () => {
     const memory = createMemoryStore(sessionPayload("access-homework"));
     const fetcher = jest.fn(async (url: string, init?: RequestInit) => {

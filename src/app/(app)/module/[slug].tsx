@@ -8,8 +8,9 @@ export default function ModuleRoute() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const { user } = useAuth();
   const canOpenItem =
-    user?.role === "STUDENT" &&
-    (slug === "contracts" || slug === "homeworks" || slug === "lessons");
+    (user?.role === "STUDENT" &&
+      (slug === "contracts" || slug === "homeworks" || slug === "lessons")) ||
+    (user?.role === "TEACHER" && slug === "lessons");
 
   function openItem(item: { id: string }) {
     if (slug === "contracts") {

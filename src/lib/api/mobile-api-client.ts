@@ -184,6 +184,64 @@ const lessonResponseSchema = z
 
 export type MobileLesson = z.infer<typeof lessonSchema>;
 
+const teacherLessonSchema = z
+  .object({
+    description: z.string().nullable(),
+    homeworks: z
+      .array(
+        z
+          .object({
+            dueDate: z.string().datetime().nullable(),
+            id: z.string().min(1),
+            status: z.enum(["ARCHIVED", "DRAFT", "PUBLISHED"]),
+            title: z.string().min(1),
+          })
+          .strict(),
+      )
+      .max(100),
+    id: z.string().min(1),
+    materials: z
+      .array(
+        z
+          .object({
+            content: z.string().nullable(),
+            id: z.string().min(1),
+            title: z.string().min(1),
+            type: z.enum(["LINK", "TEXT"]),
+            url: z.string().url().nullable(),
+          })
+          .strict(),
+      )
+      .max(100),
+    scheduledAt: z.string().datetime().nullable(),
+    status: z.enum(["ARCHIVED", "DRAFT", "PUBLISHED"]),
+    studentName: z.string().min(1).nullable(),
+    teacherName: z.string().min(1),
+    title: z.string().min(1),
+    vocabularyItems: z
+      .array(
+        z
+          .object({
+            example: z.string().nullable(),
+            id: z.string().min(1),
+            term: z.string().min(1),
+            translation: z.string().min(1),
+          })
+          .strict(),
+      )
+      .max(200),
+  })
+  .strict();
+
+const teacherLessonResponseSchema = z
+  .object({
+    lesson: teacherLessonSchema,
+    ok: z.literal(true),
+  })
+  .strict();
+
+export type MobileTeacherLesson = z.infer<typeof teacherLessonSchema>;
+
 const chatThreadSchema = z
   .object({
     id: z.string().min(1),
@@ -932,6 +990,26 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         { method: "GET" },
       );
       const parsed = lessonResponseSchema.safeParse(await response.json());
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data.lesson;
+    },
+
+    async getTeacherLesson(lessonId: string): Promise<MobileTeacherLesson> {
+      const response = await authenticatedRequest(
+        `/teacher/lessons/${encodeURIComponent(lessonId)}`,
+        { method: "GET" },
+      );
+      const parsed = teacherLessonResponseSchema.safeParse(
+        await response.json(),
+      );
 
       if (!parsed.success) {
         throw new ApiError(
