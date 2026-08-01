@@ -486,6 +486,78 @@ export type MobileTeacherHomeworkUpdateInput = z.infer<
   typeof teacherHomeworkUpdateInputSchema
 >;
 
+const teacherInteractiveFieldInputSchema = z
+  .object({
+    height: z.number().min(1).max(100),
+    id: z.string().min(1).max(80).nullable(),
+    label: z.string().max(80).nullable(),
+    page: z.number().int().min(1).max(20),
+    placeholder: z.string().max(2000).nullable(),
+    required: z.boolean(),
+    type: z.enum([
+      "CHECKBOX",
+      "DRAWING",
+      "LISTENING",
+      "LONG_TEXT",
+      "SHORT_TEXT",
+      "TINY_TEXT",
+    ]),
+    width: z.number().min(1).max(100),
+    x: z.number().min(0).max(100),
+    y: z.number().min(0).max(100),
+  })
+  .strict();
+
+const teacherInteractiveFieldSchema = teacherInteractiveFieldInputSchema
+  .extend({ id: z.string().min(1).max(80), sortOrder: z.number().int().min(0) })
+  .strict();
+
+const teacherInteractiveFieldEditorSchema = z
+  .object({
+    assetFileName: z.string().min(1).nullable(),
+    fields: z.array(teacherInteractiveFieldSchema).max(120),
+    hasSubmissions: z.boolean(),
+    homeworkId: z.string().min(1),
+    pageCount: z.number().int().min(1).max(20),
+    replayed: z.boolean().optional(),
+    title: z.string().min(1),
+    updatedAt: z.string().datetime(),
+  })
+  .strict();
+
+const teacherInteractiveFieldEditorResponseSchema = z
+  .object({ editor: teacherInteractiveFieldEditorSchema, ok: z.literal(true) })
+  .strict();
+
+const teacherInteractiveFieldUpdateInputSchema = z
+  .object({
+    expectedUpdatedAt: z.string().datetime(),
+    fields: z.array(teacherInteractiveFieldInputSchema).max(120),
+    operationId: z.string().uuid(),
+  })
+  .strict();
+
+const teacherInteractiveFieldUpdateResponseSchema = z
+  .object({
+    editor: teacherInteractiveFieldEditorSchema,
+    message: z.string().min(1),
+    ok: z.literal(true),
+  })
+  .strict();
+
+export type MobileTeacherInteractiveField = z.infer<
+  typeof teacherInteractiveFieldSchema
+>;
+export type MobileTeacherInteractiveFieldDraft = z.infer<
+  typeof teacherInteractiveFieldInputSchema
+>;
+export type MobileTeacherInteractiveFieldEditor = z.infer<
+  typeof teacherInteractiveFieldEditorSchema
+>;
+export type MobileTeacherInteractiveFieldUpdateInput = z.infer<
+  typeof teacherInteractiveFieldUpdateInputSchema
+>;
+
 const teacherSubmissionStatusSchema = z.enum([
   "RETURNED",
   "REVIEWED",
@@ -1668,6 +1740,55 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         );
       }
       return parsed.data;
+    },
+
+    async getTeacherInteractiveFields(
+      homeworkId: string,
+    ): Promise<MobileTeacherInteractiveFieldEditor> {
+      const response = await authenticatedRequest(
+        `/teacher/homeworks/${encodeURIComponent(homeworkId)}/fields`,
+        { method: "GET" },
+      );
+      const parsed = teacherInteractiveFieldEditorResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return parsed.data.editor;
+    },
+
+    async updateTeacherInteractiveFields(
+      homeworkId: string,
+      input: MobileTeacherInteractiveFieldUpdateInput,
+    ) {
+      const validated = teacherInteractiveFieldUpdateInputSchema.safeParse(input);
+      if (!validated.success) {
+        throw new ApiError(
+          "INVALID_REQUEST",
+          "Revise os campos interativos.",
+          400,
+        );
+      }
+      const response = await authenticatedRequest(
+        `/teacher/homeworks/${encodeURIComponent(homeworkId)}/fields`,
+        { body: JSON.stringify(validated.data), method: "PUT" },
+      );
+      const parsed = teacherInteractiveFieldUpdateResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return { editor: parsed.data.editor, message: parsed.data.message };
     },
 
     async getTeacherSubmissions(): Promise<MobileTeacherSubmissionQueue> {

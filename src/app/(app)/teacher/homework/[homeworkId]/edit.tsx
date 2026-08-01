@@ -16,6 +16,12 @@ export default function EditTeacherHomeworkRoute() {
       mode="edit"
       onBack={() => router.back()}
       onDeleted={() => router.replace("/module/homeworks")}
+      onEditInteractiveFields={(interactiveHomeworkId) =>
+        router.push({
+          params: { homeworkId: interactiveHomeworkId },
+          pathname: "/teacher/homework/[homeworkId]/fields",
+        })
+      }
       onSaved={(savedHomeworkId) =>
         router.replace({
           params: { homeworkId: savedHomeworkId },

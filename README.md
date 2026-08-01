@@ -16,8 +16,9 @@ vivo com manutenção sincronizada, central de avisos do aluno para aulas,
 detalhes, criação e edição protegida do planejamento de aulas da teacher,
 incluindo conflito entre site/aparelho, criação, edição, duplicação e exclusão
 confirmada de homeworks da teacher, fila nativa de entregas, feedback e liberação
-de nova tentativa com conflito seguro, tarefas, correções e conquistas, além de
-homeworks `TEXT`/interativas com desenho, listening e envio,
+de nova tentativa com conflito seguro, editor nativo de campos interativos com
+posição compatível com o site, tarefas, correções e conquistas, além de homeworks
+`TEXT`/interativas com desenho, listening e envio,
 já estão implementados. Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme

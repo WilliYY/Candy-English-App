@@ -1431,6 +1431,80 @@ describe("MobileApiClient", () => {
     });
   });
 
+  it("loads and updates protected teacher interactive fields", async () => {
+    const memory = createMemoryStore(sessionPayload("access-fields"));
+    const requests: { body: unknown; method: string | undefined }[] = [];
+    const editor = {
+      assetFileName: "activity.pdf",
+      fields: [
+        {
+          height: 4,
+          id: "field-1",
+          label: "Answer",
+          page: 1,
+          placeholder: "Type here",
+          required: true,
+          sortOrder: 0,
+          type: "LONG_TEXT" as const,
+          width: 80,
+          x: 10,
+          y: 15,
+        },
+      ],
+      hasSubmissions: false,
+      homeworkId: "homework/1",
+      pageCount: 2,
+      title: "Interactive activity",
+      updatedAt: "2026-08-01T18:00:00.000Z",
+    };
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/teacher/homeworks/homework%2F1/fields",
+      );
+      requests.push({
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        method: init?.method,
+      });
+      return jsonResponse(200, {
+        editor: init?.method === "PUT" ? { ...editor, replayed: false } : editor,
+        ...(init?.method === "PUT"
+          ? { message: "1 campo(s) salvos com sucesso." }
+          : {}),
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+    const fields = editor.fields.map(({ sortOrder: _sortOrder, ...field }) => field);
+
+    await expect(client.getTeacherInteractiveFields("homework/1")).resolves.toMatchObject({
+      fields: [{ id: "field-1", type: "LONG_TEXT" }],
+      pageCount: 2,
+    });
+    await expect(
+      client.updateTeacherInteractiveFields("homework/1", {
+        expectedUpdatedAt: editor.updatedAt,
+        fields,
+        operationId: "11111111-1111-4111-8111-111111111111",
+      }),
+    ).resolves.toMatchObject({ message: "1 campo(s) salvos com sucesso." });
+    expect(requests).toEqual([
+      { body: null, method: "GET" },
+      {
+        body: {
+          expectedUpdatedAt: editor.updatedAt,
+          fields,
+          operationId: "11111111-1111-4111-8111-111111111111",
+        },
+        method: "PUT",
+      },
+    ]);
+  });
+
   it("loads the teacher submission queue and protected submission detail", async () => {
     const memory = createMemoryStore(sessionPayload("access-submissions"));
     const fetcher = jest.fn(async (url: string, init?: RequestInit) => {

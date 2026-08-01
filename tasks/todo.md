@@ -66,7 +66,7 @@
 - [x] Aulas e materiais.
 - [x] Criação e edição de aula interativa.
 - [x] Homework: criar, duplicar, editar e excluir.
-- [ ] Editor nativo de campos interativos.
+- [x] Editor nativo de campos interativos.
 - [x] Fila de submissões e feedback.
 - [x] Mensagens com alunos vinculados.
 - [ ] Contratos permitidos.

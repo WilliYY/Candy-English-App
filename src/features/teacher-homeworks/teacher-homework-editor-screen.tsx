@@ -36,10 +36,19 @@ type Props = {
   mode: "create" | "edit";
   onBack: () => void;
   onDeleted: () => void;
+  onEditInteractiveFields?: (homeworkId: string) => void;
   onSaved: (homeworkId: string) => void;
 };
 
-type LoadedProps = Pick<Props, "homeworkId" | "lessonId" | "mode" | "onDeleted" | "onSaved"> & {
+type LoadedProps = Pick<
+  Props,
+  | "homeworkId"
+  | "lessonId"
+  | "mode"
+  | "onDeleted"
+  | "onEditInteractiveFields"
+  | "onSaved"
+> & {
   initialHomework?: MobileTeacherHomeworkEditor;
   onReload: () => Promise<MobileTeacherHomeworkEditor | undefined>;
   options: MobileTeacherHomeworkOptions;
@@ -88,6 +97,7 @@ function LoadedTeacherHomeworkEditor({
   lessonId = "",
   mode,
   onDeleted,
+  onEditInteractiveFields,
   onReload,
   onSaved,
   options,
@@ -100,6 +110,11 @@ function LoadedTeacherHomeworkEditor({
   const [operationId, setOperationId] = useState(() => Crypto.randomUUID());
   const [expectedUpdatedAt, setExpectedUpdatedAt] = useState<string | null>(
     initialHomework?.updatedAt ?? null,
+  );
+  const [savedFormSnapshot, setSavedFormSnapshot] = useState(() =>
+    initialHomework
+      ? JSON.stringify(teacherHomeworkEditorToForm(initialHomework))
+      : "",
   );
   const [validationError, setValidationError] = useState("");
   const [duplicateStudentIds, setDuplicateStudentIds] = useState<string[]>([]);
@@ -131,6 +146,7 @@ function LoadedTeacherHomeworkEditor({
       });
       if (mode === "edit") {
         setExpectedUpdatedAt(result.updatedAt);
+        setSavedFormSnapshot(JSON.stringify(form));
         setOperationId(Crypto.randomUUID());
         setActionSuccess(result.message);
         return;
@@ -194,6 +210,7 @@ function LoadedTeacherHomeworkEditor({
     const refreshed = await onReload();
     if (!refreshed) return;
     setForm(teacherHomeworkEditorToForm(refreshed));
+    setSavedFormSnapshot(JSON.stringify(teacherHomeworkEditorToForm(refreshed)));
     setExpectedUpdatedAt(refreshed.updatedAt);
     setOperationId(Crypto.randomUUID());
     setDeleteArmed(false);
@@ -218,6 +235,8 @@ function LoadedTeacherHomeworkEditor({
     saveMutation.error.code === "HOMEWORK_EDIT_CONFLICT";
   const actionError =
     mutationMessage(duplicateMutation.error) || mutationMessage(deleteMutation.error);
+  const hasUnsavedMetadata =
+    mode === "edit" && JSON.stringify(form) !== savedFormSnapshot;
 
   return (
     <>
@@ -240,6 +259,26 @@ function LoadedTeacherHomeworkEditor({
           <Text style={styles.infoText}>
             {initialHomework?.assetFileName ?? "Arquivo interativo"} · {initialHomework?.interactiveFieldCount ?? 0} área(s). O app edita os dados, alunos e prazo sem alterar o arquivo ou as áreas.
           </Text>
+          {mode === "edit" && onEditInteractiveFields ? (
+            <>
+              <Pressable
+                accessibilityRole="button"
+                disabled={hasUnsavedMetadata}
+                onPress={() => onEditInteractiveFields(homeworkId)}
+                style={[
+                  styles.secondary,
+                  hasUnsavedMetadata ? styles.submitDisabled : null,
+                ]}
+              >
+                <Text style={styles.secondaryText}>Editar campos interativos</Text>
+              </Pressable>
+              {hasUnsavedMetadata ? (
+                <Text style={styles.infoText}>
+                  Salve as alterações desta tarefa antes de abrir os campos.
+                </Text>
+              ) : null}
+            </>
+          ) : null}
         </View>
       )}
 
@@ -390,6 +429,7 @@ export function TeacherHomeworkEditorScreen({
   mode,
   onBack,
   onDeleted,
+  onEditInteractiveFields,
   onSaved,
 }: Props) {
   const optionsQuery = useQuery({
@@ -475,6 +515,7 @@ export function TeacherHomeworkEditorScreen({
               lessonId={lessonId}
               mode={mode}
               onDeleted={onDeleted}
+              onEditInteractiveFields={onEditInteractiveFields}
               onReload={reloadEditor}
               onSaved={onSaved}
               options={optionsQuery.data}
