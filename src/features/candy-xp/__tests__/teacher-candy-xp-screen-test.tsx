@@ -80,10 +80,11 @@ test("shows only the authenticated teacher Candy XP journey", async () => {
   });
 
   expect(await view.findByText("Candy XP Teacher")).toBeTruthy();
-  expect(view.getAllByText("180 XP").length).toBeGreaterThanOrEqual(1);
+  expect((await view.findAllByText("180 XP")).length).toBeGreaterThanOrEqual(1);
   expect(view.getByText("Missões teacher")).toBeTruthy();
   expect(view.getByText("Aulas criadas · 1")).toBeTruthy();
   expect(view.getByText("Candy Teacher · você")).toBeTruthy();
   expect(view.queryByText("Missões disponíveis")).toBeNull();
   expect(getTeacherCandyXp).toHaveBeenCalledTimes(1);
+  view.unmount();
 });
