@@ -23,10 +23,11 @@ type AdminUsersClient = Pick<ReturnType<typeof getMobileApi>, "getAdminUsers">;
 type Props = {
   client?: AdminUsersClient;
   onBack: () => void;
+  onCreateUser: () => void;
   onOpenUser: (userId: string) => void;
 };
 
-const roleOptions: Array<{ label: string; value: MobileAdminUserRole | "ALL" }> = [
+const roleOptions: { label: string; value: MobileAdminUserRole | "ALL" }[] = [
   { label: "Todos", value: "ALL" },
   { label: "Alunos", value: "STUDENT" },
   { label: "Teachers", value: "TEACHER" },
@@ -45,7 +46,7 @@ const roleLabels: Record<MobileAdminUserRole, string> = {
   TEACHER: "TEACHER",
 };
 
-export function AdminUsersScreen({ client, onBack, onOpenUser }: Props) {
+export function AdminUsersScreen({ client, onBack, onCreateUser, onOpenUser }: Props) {
   const api = client ?? getMobileApi();
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
@@ -91,6 +92,14 @@ export function AdminUsersScreen({ client, onBack, onOpenUser }: Props) {
         <View style={styles.topBar}>
           <Pressable accessibilityRole="button" onPress={onBack} style={styles.backButton}>
             <Text style={styles.backText}>Voltar</Text>
+          </Pressable>
+          <Pressable
+            accessibilityLabel="Cadastrar novo usuario"
+            accessibilityRole="button"
+            onPress={onCreateUser}
+            style={styles.topAction}
+          >
+            <Text style={styles.topActionText}>Novo usuario</Text>
           </Pressable>
         </View>
         <Text style={styles.eyebrow}>ADMIN · USUARIOS</Text>

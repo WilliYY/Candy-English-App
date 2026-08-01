@@ -76,6 +76,21 @@ export const adminUserResponseSchema = z
   })
   .strict();
 
+export const adminUserMutationResponseSchema = z
+  .object({
+    message: z.string().min(1).max(300),
+    ok: z.literal(true),
+    userId: z.string().min(1).max(200),
+  })
+  .strict();
+
+export const adminUserStatusResponseSchema = adminUserMutationResponseSchema
+  .extend({
+    changed: z.boolean(),
+    isActive: z.boolean(),
+  })
+  .strict();
+
 export type MobileAdminUserList = z.infer<typeof adminUserListSchema>;
 export type MobileAdminUserListItem = z.infer<
   typeof adminUserListItemSchema
@@ -89,4 +104,32 @@ export type AdminUsersInput = {
   query?: string;
   role?: MobileAdminUserRole;
   status?: "ACTIVE" | "INACTIVE" | "ALL";
+};
+
+export type AdminUserCreateInput = {
+  address?: string;
+  bio?: string;
+  confirmPassword: string;
+  email: string;
+  level?: string;
+  name: string;
+  password: string;
+  phone?: string;
+  role: MobileAdminUserRole;
+};
+
+export type AdminUserUpdateInput = {
+  address?: string;
+  bio?: string;
+  email: string;
+  expectedUpdatedAt: string;
+  level?: string;
+  name: string;
+  phone?: string;
+};
+
+export type AdminUserStatusInput = {
+  confirmStatusChange: true;
+  expectedUpdatedAt: string;
+  isActive: boolean;
 };

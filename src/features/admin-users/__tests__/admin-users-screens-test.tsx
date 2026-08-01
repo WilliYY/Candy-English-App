@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import type { PropsWithChildren } from "react";
+import { Alert } from "react-native";
 
+import { AdminUserEditorScreen } from "@/features/admin-users/admin-user-editor-screen";
 import { AdminUserDetailScreen } from "@/features/admin-users/admin-user-detail-screen";
 import { AdminUsersScreen } from "@/features/admin-users/admin-users-screen";
 import type {
@@ -12,6 +14,7 @@ import type {
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: {
+      mutations: { gcTime: Infinity, retry: false },
       queries: { gcTime: Infinity, retry: false },
     },
   });
@@ -45,11 +48,13 @@ const users: MobileAdminUserList = {
 describe("Admin user screens", () => {
   it("lists, filters and opens users without credential data", async () => {
     const getAdminUsers = jest.fn(async () => users);
+    const onCreateUser = jest.fn();
     const onOpenUser = jest.fn();
     const view = await render(
       <AdminUsersScreen
         client={{ getAdminUsers }}
         onBack={jest.fn()}
+        onCreateUser={onCreateUser}
         onOpenUser={onOpenUser}
       />,
       { wrapper: createWrapper() },
@@ -58,6 +63,8 @@ describe("Admin user screens", () => {
     expect(await view.findByText("Student Candy")).toBeTruthy();
     expect(view.getByText("student@candy.example")).toBeTruthy();
     expect(view.queryByText(/senha/i)).toBeNull();
+    await fireEvent.press(view.getByLabelText("Cadastrar novo usuario"));
+    expect(onCreateUser).toHaveBeenCalledTimes(1);
 
     await fireEvent.changeText(
       view.getByLabelText("Buscar usuarios por nome ou email"),
@@ -101,10 +108,26 @@ describe("Admin user screens", () => {
       teacherProfile: null,
       updatedAt: "2026-08-01T12:00:00.000Z",
     };
+    const changeAdminUserStatus = jest.fn(async () => ({
+      changed: true,
+      isActive: false,
+      message: "Usuario desativado com sucesso.",
+      ok: true as const,
+      userId: "user-1",
+    }));
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(
+      (_title, _message, buttons) => {
+        buttons?.find((button) => button.text === "Desativar")?.onPress?.();
+      },
+    );
     const view = await render(
       <AdminUserDetailScreen
-        client={{ getAdminUser: jest.fn(async () => detail) }}
+        client={{
+          changeAdminUserStatus,
+          getAdminUser: jest.fn(async () => detail),
+        }}
         onBack={jest.fn()}
+        onEditUser={jest.fn()}
         userId="user-1"
       />,
       { wrapper: createWrapper() },
@@ -114,5 +137,50 @@ describe("Admin user screens", () => {
     expect(view.getByText("Teacher Candy")).toBeTruthy();
     expect(view.getByText("B1")).toBeTruthy();
     expect(view.queryByText(/passwordHash/i)).toBeNull();
+    await fireEvent.press(view.getByLabelText("Desativar usuario"));
+    await waitFor(() => {
+      expect(changeAdminUserStatus).toHaveBeenCalledWith("user-1", {
+        confirmStatusChange: true,
+        expectedUpdatedAt: detail.updatedAt,
+        isActive: false,
+      });
+    });
+    alert.mockRestore();
+  });
+
+  it("creates a user only after validating matching passwords", async () => {
+    const createAdminUser = jest.fn(async () => ({
+      message: "Usuario cadastrado com sucesso.",
+      ok: true as const,
+      userId: "user-2",
+    }));
+    const onSaved = jest.fn();
+    const view = await render(
+      <AdminUserEditorScreen
+        client={{ createAdminUser, getAdminUser: jest.fn() }}
+        onBack={jest.fn()}
+        onSaved={onSaved}
+      />,
+      { wrapper: createWrapper() },
+    );
+
+    await fireEvent.changeText(view.getByLabelText("Nome do usuario"), "Ana Candy");
+    await fireEvent.changeText(view.getByLabelText("Email do usuario"), "ana@example.com");
+    await fireEvent.changeText(view.getByLabelText("Senha temporaria"), "StrongPass123");
+    await fireEvent.changeText(view.getByLabelText("Confirmar senha temporaria"), "StrongPass123");
+    await fireEvent.press(view.getByLabelText("Salvar novo usuario"));
+
+    await waitFor(() => {
+      expect(createAdminUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          confirmPassword: "StrongPass123",
+          email: "ana@example.com",
+          name: "Ana Candy",
+          password: "StrongPass123",
+          role: "STUDENT",
+        }),
+      );
+      expect(onSaved).toHaveBeenCalledWith("user-2");
+    });
   });
 });

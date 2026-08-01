@@ -1,8 +1,13 @@
 import { z } from "zod";
 
 import {
+  adminUserMutationResponseSchema,
   adminUserResponseSchema,
+  adminUserStatusResponseSchema,
   adminUsersResponseSchema,
+  type AdminUserCreateInput,
+  type AdminUserStatusInput,
+  type AdminUserUpdateInput,
   type AdminUsersInput,
   type MobileAdminUserDetail,
   type MobileAdminUserList,
@@ -41,6 +46,9 @@ import {
 } from "@/lib/api/teacher-catty-contracts";
 
 export type {
+  AdminUserCreateInput,
+  AdminUserStatusInput,
+  AdminUserUpdateInput,
   AdminUsersInput,
   MobileAdminUserDetail,
   MobileAdminUserList,
@@ -1579,6 +1587,63 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.user;
+    },
+
+    async createAdminUser(input: AdminUserCreateInput) {
+      const response = await authenticatedRequest("/admin/users", {
+        body: JSON.stringify(input),
+        method: "POST",
+      });
+      const parsed = adminUserMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou o novo usuario.",
+          502,
+        );
+      }
+      return parsed.data;
+    },
+
+    async updateAdminUser(userId: string, input: AdminUserUpdateInput) {
+      const response = await authenticatedRequest(
+        `/admin/users/${encodeURIComponent(userId)}`,
+        { body: JSON.stringify(input), method: "PUT" },
+      );
+      const parsed = adminUserMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou a edicao do usuario.",
+          502,
+        );
+      }
+      return parsed.data;
+    },
+
+    async changeAdminUserStatus(
+      userId: string,
+      input: AdminUserStatusInput,
+    ) {
+      const response = await authenticatedRequest(
+        `/admin/users/${encodeURIComponent(userId)}/status`,
+        { body: JSON.stringify(input), method: "PATCH" },
+      );
+      const parsed = adminUserStatusResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou o status do usuario.",
+          502,
+        );
+      }
+      return parsed.data;
     },
 
     async getModule(slug: string): Promise<MobileModuleData> {

@@ -1,16 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { styles } from "@/features/admin-users/admin-users.styles";
 import { getMobileApi } from "@/lib/api/mobile-api";
 import type { MobileAdminUserRole } from "@/lib/api/mobile-api-client";
 
-type Client = Pick<ReturnType<typeof getMobileApi>, "getAdminUser">;
+type Client = Pick<
+  ReturnType<typeof getMobileApi>,
+  "changeAdminUserStatus" | "getAdminUser"
+>;
 
 type Props = {
   client?: Client;
   onBack: () => void;
+  onEditUser: (userId: string) => void;
   userId: string;
 };
 
@@ -24,12 +28,49 @@ function dateLabel(value: string) {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(value));
 }
 
-export function AdminUserDetailScreen({ client, onBack, userId }: Props) {
+export function AdminUserDetailScreen({ client, onBack, onEditUser, userId }: Props) {
   const api = client ?? getMobileApi();
+  const queryClient = useQueryClient();
   const user = useQuery({
     queryFn: () => api.getAdminUser(userId),
     queryKey: ["admin-user", userId],
   });
+  const statusMutation = useMutation({
+    mutationFn: (isActive: boolean) => {
+      if (!user.data) throw new Error("Usuario nao carregado.");
+      return api.changeAdminUserStatus(userId, {
+        confirmStatusChange: true,
+        expectedUpdatedAt: user.data.updatedAt,
+        isActive,
+      });
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admin-user", userId] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+    },
+  });
+
+  function confirmStatusChange() {
+    if (!user.data) return;
+    const nextActive = !user.data.isActive;
+    const action = nextActive ? "Reativar" : "Desativar";
+    Alert.alert(
+      `${action} ${user.data.name}?`,
+      nextActive
+        ? "A pessoa podera entrar novamente com as credenciais atuais."
+        : "O acesso sera bloqueado e as sessoes moveis abertas serao encerradas.",
+      [
+        { style: "cancel", text: "Cancelar" },
+        {
+          onPress: () => statusMutation.mutate(nextActive),
+          style: nextActive ? "default" : "destructive",
+          text: action,
+        },
+      ],
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -60,6 +101,38 @@ export function AdminUserDetailScreen({ client, onBack, userId }: Props) {
                 {roleLabels[user.data.role].toUpperCase()} · {user.data.isActive ? "ATIVO" : "INATIVO"}
               </Text>
             </View>
+            <View style={styles.actionRow}>
+              <Pressable
+                accessibilityLabel="Editar usuario"
+                accessibilityRole="button"
+                onPress={() => onEditUser(userId)}
+                style={styles.primaryAction}
+              >
+                <Text style={styles.primaryActionText}>Editar dados</Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel={user.data.isActive ? "Desativar usuario" : "Reativar usuario"}
+                accessibilityRole="button"
+                disabled={statusMutation.isPending}
+                onPress={confirmStatusChange}
+                style={styles.dangerAction}
+              >
+                <Text style={styles.dangerActionText}>
+                  {statusMutation.isPending
+                    ? "Salvando..."
+                    : user.data.isActive
+                      ? "Desativar"
+                      : "Reativar"}
+                </Text>
+              </Pressable>
+            </View>
+            {statusMutation.isError ? (
+              <Text style={styles.formError}>
+                {statusMutation.error instanceof Error
+                  ? statusMutation.error.message
+                  : "Nao foi possivel alterar o status."}
+              </Text>
+            ) : null}
 
             <Text style={styles.sectionTitle}>Contato e conta</Text>
             <View style={styles.infoCard}>

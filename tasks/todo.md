@@ -85,7 +85,7 @@
 
 - [x] Resumo administrativo.
 - [x] Usuários: listar, buscar e detalhar.
-- [ ] Criar, editar, ativar e desativar usuário.
+- [x] Criar, editar, ativar e desativar usuário.
 - [ ] Redefinição de senha com revogação.
 - [ ] Pré-cadastros completos.
 - [ ] Conversão transacional.

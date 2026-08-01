@@ -28,7 +28,8 @@ teacher envia sugestões pendentes para aprovação do Admin e
 personaliza temas somente dos alunos vinculados, usando a mesma validação e os
 mesmos registros do site, sem expor e-mail, mensagens ou memória interna.
 O ADMIN já possui gestão nativa de consulta de usuários, com busca, filtros,
-paginação e detalhe seguro de conta e vínculos, sem dados de senha ou sessão.
+paginação, detalhe seguro, criação, edição e ativação/desativação confirmada,
+sem dados de senha ou sessão e com proteção contra conflitos com o site.
 Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme

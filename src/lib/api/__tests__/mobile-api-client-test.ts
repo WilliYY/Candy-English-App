@@ -2015,4 +2015,86 @@ describe("MobileApiClient", () => {
       "https://candy.example/api/mobile/v1/admin/users/user%2F1",
     ]);
   });
+
+  it("creates, edits and confirms administrative user status changes", async () => {
+    const memory = createMemoryStore({
+      ...sessionPayload("access-admin-write"),
+      user: { ...sessionPayload().user, role: "ADMIN" },
+    });
+    const requests: { body: unknown; method: string | undefined; url: string }[] = [];
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        method: init?.method,
+        url,
+      });
+      if (url.endsWith("/status")) {
+        return jsonResponse(200, {
+          changed: true,
+          isActive: false,
+          message: "Usuario desativado com sucesso.",
+          ok: true,
+          userId: "user/1",
+        });
+      }
+      return jsonResponse(url.endsWith("/admin/users") ? 201 : 200, {
+        message: url.endsWith("/admin/users")
+          ? "Usuario cadastrado com sucesso."
+          : "Usuario atualizado com sucesso.",
+        ok: true,
+        userId: "user/1",
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+    const createInput = {
+      confirmPassword: "StrongPass123",
+      email: "student@example.com",
+      name: "Student Candy",
+      password: "StrongPass123",
+      role: "STUDENT" as const,
+    };
+    const updateInput = {
+      email: "new@example.com",
+      expectedUpdatedAt: "2026-08-01T12:00:00.000Z",
+      name: "New Name",
+    };
+    const statusInput = {
+      confirmStatusChange: true as const,
+      expectedUpdatedAt: "2026-08-01T12:00:00.000Z",
+      isActive: false,
+    };
+
+    await expect(client.createAdminUser(createInput)).resolves.toMatchObject({
+      userId: "user/1",
+    });
+    await expect(
+      client.updateAdminUser("user/1", updateInput),
+    ).resolves.toMatchObject({ userId: "user/1" });
+    await expect(
+      client.changeAdminUserStatus("user/1", statusInput),
+    ).resolves.toMatchObject({ changed: true, isActive: false });
+
+    expect(requests).toEqual([
+      {
+        body: createInput,
+        method: "POST",
+        url: "https://candy.example/api/mobile/v1/admin/users",
+      },
+      {
+        body: updateInput,
+        method: "PUT",
+        url: "https://candy.example/api/mobile/v1/admin/users/user%2F1",
+      },
+      {
+        body: statusInput,
+        method: "PATCH",
+        url: "https://candy.example/api/mobile/v1/admin/users/user%2F1/status",
+      },
+    ]);
+  });
 });

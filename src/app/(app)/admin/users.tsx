@@ -13,6 +13,7 @@ export default function AdminUsersRoute() {
   return (
     <AdminUsersScreen
       onBack={() => router.back()}
+      onCreateUser={() => router.push("/admin/user/new")}
       onOpenUser={(userId) =>
         router.push({
           params: { userId },
