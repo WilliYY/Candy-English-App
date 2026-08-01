@@ -2210,4 +2210,88 @@ describe("MobileApiClient", () => {
       "https://candy.example/api/mobile/v1/admin/pre-registrations/pre%2F1",
     ]);
   });
+
+  it("converts an administrative pre-registration with explicit confirmations", async () => {
+    const memory = createMemoryStore({
+      ...sessionPayload("access-admin-conversion"),
+      user: { ...sessionPayload().user, role: "ADMIN" },
+    });
+    const requests: { body: unknown; method: string | undefined; url: string }[] = [];
+    const preRegistration = {
+      address: null,
+      agenda: { complete: false, days: [], time: null },
+      assignedTeacherName: null,
+      birthDate: null,
+      canConvert: false,
+      city: null,
+      converted: true,
+      convertedUser: { email: "student@example.com", name: "Ana Candy" },
+      createdAt: "2026-08-01T10:00:00.000Z",
+      createdBy: null,
+      email: "student@example.com",
+      englishGoal: "Conversacao",
+      estimatedLevel: null,
+      finance: { complete: false },
+      fullName: "Ana Candy",
+      guardianDocument: null,
+      guardianName: null,
+      guardianPhone: null,
+      id: "pre/1",
+      installmentsTotal: null,
+      notes: null,
+      paymentDay: null,
+      paymentMethod: null,
+      phone: "44999999999",
+      reviewedAt: "2026-08-01T13:00:00.000Z",
+      reviewedByName: "Admin Candy",
+      secondaryContact: null,
+      status: "APPROVED",
+      statusNote: "Convertido em aluno com AVA; completar financeiro e agenda.",
+      studentPhone: null,
+      tuitionCents: null,
+      unit: "IVATE",
+      updatedAt: "2026-08-01T13:00:00.000Z",
+    };
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        method: init?.method,
+        url,
+      });
+      return jsonResponse(200, {
+        message: "Aluno convertido com AVA.",
+        ok: true,
+        preRegistration,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+    const conversion = {
+      confirmConversion: true as const,
+      confirmMissingAgendaData: true,
+      confirmMissingFinancialData: true,
+      emailForLogin: "student@example.com",
+      expectedUpdatedAt: "2026-08-01T12:00:00.000Z",
+      initialPassword: "StrongPass123",
+      operationId: "11111111-1111-4111-8111-111111111111",
+    };
+
+    await expect(
+      client.convertAdminPreRegistration("pre/1", conversion),
+    ).resolves.toMatchObject({
+      message: "Aluno convertido com AVA.",
+      preRegistration: { converted: true, id: "pre/1" },
+    });
+    expect(requests).toEqual([
+      {
+        body: conversion,
+        method: "POST",
+        url: "https://candy.example/api/mobile/v1/admin/pre-registrations/pre%2F1/convert",
+      },
+    ]);
+  });
 });

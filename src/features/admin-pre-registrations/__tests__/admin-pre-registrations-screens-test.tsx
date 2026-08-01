@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import type { PropsWithChildren } from "react";
+import { Alert } from "react-native";
 
 import { AdminPreRegistrationDetailScreen } from "@/features/admin-pre-registrations/admin-pre-registration-detail-screen";
 import { AdminPreRegistrationsScreen } from "@/features/admin-pre-registrations/admin-pre-registrations-screen";
@@ -9,6 +10,10 @@ import type {
   MobileAdminPreRegistrationList,
   MobileAdminPreRegistrationListItem,
 } from "@/lib/api/admin-pre-registrations-contracts";
+
+jest.mock("expo-crypto", () => ({
+  randomUUID: jest.fn(() => "11111111-1111-4111-8111-111111111111"),
+}));
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -110,7 +115,10 @@ describe("Admin pre-registration screens", () => {
   it("shows complete administrative detail and readiness", async () => {
     const view = await render(
       <AdminPreRegistrationDetailScreen
-        client={{ getAdminPreRegistration: jest.fn(async () => detail) }}
+        client={{
+          convertAdminPreRegistration: jest.fn(),
+          getAdminPreRegistration: jest.fn(async () => detail),
+        }}
         onBack={jest.fn()}
         requestId="pre-1"
       />,
@@ -124,5 +132,75 @@ describe("Admin pre-registration screens", () => {
     expect(view.getByText("R$ 350,00")).toBeTruthy();
     expect(view.getByText("Pronto para conversao")).toBeTruthy();
     expect(view.queryByText(/convertedUserId/i)).toBeNull();
+  });
+
+  it("converts an incomplete pre-registration only after explicit confirmation", async () => {
+    const incompleteDetail: MobileAdminPreRegistration = {
+      ...detail,
+      agenda: { complete: false, days: [], time: null },
+      email: null,
+      finance: { complete: false },
+    };
+    const convertedDetail: MobileAdminPreRegistration = {
+      ...incompleteDetail,
+      canConvert: false,
+      converted: true,
+      convertedUser: { email: "ana.login@example.com", name: "Ana Candy" },
+      status: "APPROVED",
+    };
+    const convertAdminPreRegistration = jest.fn(async () => ({
+      message: "Aluno criado com sucesso.",
+      ok: true as const,
+      preRegistration: convertedDetail,
+    }));
+    const alert = jest
+      .spyOn(Alert, "alert")
+      .mockImplementation((_title, _message, buttons) => {
+        buttons?.find((button) => button.text === "Converter")?.onPress?.();
+      });
+    const view = await render(
+      <AdminPreRegistrationDetailScreen
+        client={{
+          convertAdminPreRegistration,
+          getAdminPreRegistration: jest.fn(async () => incompleteDetail),
+        }}
+        onBack={jest.fn()}
+        requestId="pre-1"
+      />,
+      { wrapper: createWrapper() },
+    );
+
+    await fireEvent.changeText(
+      await view.findByLabelText("Email para login do aluno"),
+      "ana.login@example.com",
+    );
+    await fireEvent.changeText(
+      view.getByLabelText("Senha inicial do aluno"),
+      "Candy#2026",
+    );
+    await fireEvent.press(
+      view.getByLabelText("Confirmar conversao sem financeiro completo"),
+    );
+    await fireEvent.press(
+      view.getByLabelText("Confirmar conversao sem agenda completa"),
+    );
+    await fireEvent.press(
+      view.getByLabelText("Converter pre-cadastro em aluno"),
+    );
+
+    await waitFor(() => {
+      expect(convertAdminPreRegistration).toHaveBeenCalledWith("pre-1", {
+        confirmConversion: true,
+        confirmMissingAgendaData: true,
+        confirmMissingFinancialData: true,
+        emailForLogin: "ana.login@example.com",
+        expectedUpdatedAt: "2026-08-01T12:00:00.000Z",
+        initialPassword: "Candy#2026",
+        operationId: "11111111-1111-4111-8111-111111111111",
+      });
+    });
+    expect(await view.findByText("Aluno criado com sucesso.")).toBeTruthy();
+    expect(view.getByLabelText("Senha inicial do aluno").props.value).toBe("");
+    alert.mockRestore();
   });
 });

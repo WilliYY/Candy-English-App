@@ -1,9 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as Crypto from "expo-crypto";
+import { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,7 +18,7 @@ import { getMobileApi } from "@/lib/api/mobile-api";
 
 type Client = Pick<
   ReturnType<typeof getMobileApi>,
-  "getAdminPreRegistration"
+  "convertAdminPreRegistration" | "getAdminPreRegistration"
 >;
 type Props = { client?: Client; onBack: () => void; requestId: string };
 
@@ -46,6 +50,237 @@ function InfoRow({ label, value: content }: { label: string; value: string }) {
       <Text style={styles.infoLabel}>{label}</Text>
       <Text style={styles.infoValue}>{content}</Text>
       <View style={styles.infoDivider} />
+    </>
+  );
+}
+
+function conversionErrorMessage(error: unknown) {
+  return error instanceof Error
+    ? error.message
+    : "Nao foi possivel converter este pre-cadastro agora.";
+}
+
+function ConversionForm({
+  api,
+  preRegistration,
+}: {
+  api: Client;
+  preRegistration: MobileAdminPreRegistration;
+}) {
+  const queryClient = useQueryClient();
+  const [email, setEmail] = useState(preRegistration.email ?? "");
+  const [password, setPassword] = useState("");
+  const [confirmMissingAgenda, setConfirmMissingAgenda] = useState(false);
+  const [confirmMissingFinance, setConfirmMissingFinance] = useState(false);
+  const [operationId, setOperationId] = useState(() => Crypto.randomUUID());
+  const [validationError, setValidationError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const conversion = useMutation({
+    mutationFn: () =>
+      api.convertAdminPreRegistration(preRegistration.id, {
+        confirmConversion: true,
+        confirmMissingAgendaData:
+          preRegistration.agenda.complete || confirmMissingAgenda,
+        confirmMissingFinancialData:
+          preRegistration.finance.complete || confirmMissingFinance,
+        emailForLogin: email.trim(),
+        expectedUpdatedAt: preRegistration.updatedAt,
+        initialPassword: password,
+        operationId,
+      }),
+    onSuccess: async (result) => {
+      setPassword("");
+      setOperationId(Crypto.randomUUID());
+      setSuccess(result.message);
+      await queryClient.invalidateQueries({
+        queryKey: ["admin-pre-registrations"],
+      });
+    },
+  });
+
+  function renewAttempt() {
+    setOperationId(Crypto.randomUUID());
+    setSuccess("");
+    conversion.reset();
+  }
+
+  function requestConversion() {
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
+      setValidationError("Informe um email valido para o login do aluno.");
+      return;
+    }
+    if (password.length < 8) {
+      setValidationError("A senha inicial precisa ter pelo menos 8 caracteres.");
+      return;
+    }
+    if (!preRegistration.finance.complete && !confirmMissingFinance) {
+      setValidationError(
+        "Confirme que os dados financeiros serao preenchidos depois.",
+      );
+      return;
+    }
+    if (!preRegistration.agenda.complete && !confirmMissingAgenda) {
+      setValidationError(
+        "Confirme que os dias e o horario serao preenchidos depois.",
+      );
+      return;
+    }
+
+    setValidationError("");
+    setSuccess("");
+    conversion.reset();
+    const pendingWarnings = [
+      !preRegistration.finance.complete ? "financeiro incompleto" : null,
+      !preRegistration.agenda.complete ? "agenda incompleta" : null,
+    ].filter(Boolean);
+    Alert.alert(
+      `Converter ${preRegistration.fullName} em aluno?`,
+      [
+        "Sera criada uma conta STUDENT. A senha nao sera exibida nem salva no app.",
+        pendingWarnings.length > 0
+          ? `Confirmacao registrada: ${pendingWarnings.join(" e ")}.`
+          : null,
+      ]
+        .filter(Boolean)
+        .join("\n\n"),
+      [
+        { style: "cancel", text: "Cancelar" },
+        {
+          onPress: () => conversion.mutate(),
+          style: "destructive",
+          text: "Converter",
+        },
+      ],
+    );
+  }
+
+  return (
+    <>
+      <Text style={styles.sectionTitle}>Criar acesso do aluno</Text>
+      <View style={styles.infoCard}>
+        <Text style={styles.warning}>
+          A conversao cria o login STUDENT. A senha e usada somente nesta
+          operacao e e apagada do formulario ao concluir.
+        </Text>
+
+        <Text style={styles.formLabel}>EMAIL PARA LOGIN</Text>
+        <TextInput
+          accessibilityLabel="Email para login do aluno"
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          onChangeText={(nextEmail) => {
+            setEmail(nextEmail);
+            renewAttempt();
+          }}
+          placeholder="aluno@email.com"
+          style={styles.formInput}
+          value={email}
+        />
+
+        <Text style={styles.formLabel}>SENHA INICIAL</Text>
+        <TextInput
+          accessibilityLabel="Senha inicial do aluno"
+          autoCapitalize="none"
+          autoCorrect={false}
+          onChangeText={(nextPassword) => {
+            setPassword(nextPassword);
+            renewAttempt();
+          }}
+          placeholder="Minimo de 8 caracteres"
+          secureTextEntry
+          style={styles.formInput}
+          value={password}
+        />
+
+        {!preRegistration.finance.complete ? (
+          <Pressable
+            accessibilityLabel="Confirmar conversao sem financeiro completo"
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: confirmMissingFinance }}
+            onPress={() => {
+              setConfirmMissingFinance((current) => !current);
+              renewAttempt();
+            }}
+            style={[
+              styles.chip,
+              confirmMissingFinance ? styles.chipSelected : null,
+            ]}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                confirmMissingFinance ? styles.chipTextSelected : null,
+              ]}
+            >
+              Confirmo converter sem financeiro completo e preencher depois.
+            </Text>
+          </Pressable>
+        ) : null}
+
+        {!preRegistration.agenda.complete ? (
+          <Pressable
+            accessibilityLabel="Confirmar conversao sem agenda completa"
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: confirmMissingAgenda }}
+            onPress={() => {
+              setConfirmMissingAgenda((current) => !current);
+              renewAttempt();
+            }}
+            style={[
+              styles.chip,
+              confirmMissingAgenda ? styles.chipSelected : null,
+            ]}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                confirmMissingAgenda ? styles.chipTextSelected : null,
+              ]}
+            >
+              Confirmo converter sem agenda completa e preencher depois.
+            </Text>
+          </Pressable>
+        ) : null}
+
+        {validationError ? (
+          <Text accessibilityRole="alert" style={styles.formError}>
+            {validationError}
+          </Text>
+        ) : null}
+        {conversion.error ? (
+          <Text accessibilityRole="alert" style={styles.formError}>
+            {conversionErrorMessage(conversion.error)}
+          </Text>
+        ) : null}
+        {success ? (
+          <View style={styles.infoCard}>
+            <Text accessibilityRole="alert" style={styles.infoValue}>
+              {success}
+            </Text>
+          </View>
+        ) : null}
+
+        <Pressable
+          accessibilityLabel="Converter pre-cadastro em aluno"
+          accessibilityRole="button"
+          disabled={conversion.isPending || Boolean(success)}
+          onPress={requestConversion}
+          style={[
+            styles.submitButton,
+            conversion.isPending || success ? styles.submitButtonDisabled : null,
+          ]}
+        >
+          {conversion.isPending ? (
+            <ActivityIndicator />
+          ) : (
+            <Text style={styles.submitButtonText}>
+              {success ? "Aluno criado" : "Converter em aluno"}
+            </Text>
+          )}
+        </Pressable>
+      </View>
     </>
   );
 }
@@ -123,6 +358,10 @@ export function AdminPreRegistrationDetailScreen({
                     : "Conversao indisponivel nesta etapa"}
               </Text>
             </View>
+
+            {detail.data.canConvert ? (
+              <ConversionForm api={api} preRegistration={detail.data} />
+            ) : null}
 
             <Text style={styles.sectionTitle}>Contato e aluno</Text>
             <View style={styles.infoCard}>

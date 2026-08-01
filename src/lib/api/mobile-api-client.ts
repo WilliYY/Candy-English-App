@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 import {
+  adminPreRegistrationConversionResponseSchema,
   adminPreRegistrationResponseSchema,
   adminPreRegistrationsResponseSchema,
+  type AdminPreRegistrationConversionInput,
   type AdminPreRegistrationsInput,
   type MobileAdminPreRegistration,
 } from "@/lib/api/admin-pre-registrations-contracts";
@@ -1646,6 +1648,27 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         );
       }
       return parsed.data.preRegistration;
+    },
+
+    async convertAdminPreRegistration(
+      requestId: string,
+      input: AdminPreRegistrationConversionInput,
+    ) {
+      const response = await authenticatedRequest(
+        `/admin/pre-registrations/${encodeURIComponent(requestId)}/convert`,
+        { body: JSON.stringify(input), method: "POST" },
+      );
+      const parsed = adminPreRegistrationConversionResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou a conversao do pre-cadastro.",
+          502,
+        );
+      }
+      return parsed.data;
     },
 
     async createAdminUser(input: AdminUserCreateInput) {

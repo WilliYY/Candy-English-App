@@ -98,6 +98,14 @@ export const adminPreRegistrationResponseSchema = z
   })
   .strict();
 
+export const adminPreRegistrationConversionResponseSchema = z
+  .object({
+    message: z.string().min(1).max(500),
+    ok: z.literal(true),
+    preRegistration: detailSchema,
+  })
+  .strict();
+
 export type MobileAdminPreRegistrationList = z.infer<typeof listSchema>;
 export type MobileAdminPreRegistrationListItem = z.infer<
   typeof listItemSchema
@@ -112,4 +120,14 @@ export type AdminPreRegistrationsInput = {
   query?: string;
   status?: MobileAdminPreRegistrationStatus | "ALL" | "OPEN";
   unit?: MobileAdminPreRegistrationUnit | "ALL";
+};
+
+export type AdminPreRegistrationConversionInput = {
+  confirmConversion: true;
+  confirmMissingAgendaData: boolean;
+  confirmMissingFinancialData: boolean;
+  emailForLogin: string;
+  expectedUpdatedAt: string;
+  initialPassword: string;
+  operationId: string;
 };

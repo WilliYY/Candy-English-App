@@ -88,7 +88,7 @@
 - [x] Criar, editar, ativar e desativar usuário.
 - [x] Redefinição de senha com revogação.
 - [x] Pré-cadastros completos.
-- [ ] Conversão transacional.
+- [x] Conversão transacional.
 - [ ] Financeiro por unidade.
 - [ ] Pagamentos, parcelas, gastos e logs.
 - [ ] Agenda mensal e fila diária.
