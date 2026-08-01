@@ -1,9 +1,9 @@
 import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 
-import { AdminUserDetailScreen } from "@/features/admin-users/admin-user-detail-screen";
+import { AdminUserPasswordScreen } from "@/features/admin-users/admin-user-password-screen";
 import { useAuth } from "@/providers/auth-provider";
 
-export default function AdminUserDetailRoute() {
+export default function AdminUserPasswordRoute() {
   const router = useRouter();
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const { user } = useAuth();
@@ -13,13 +13,10 @@ export default function AdminUserDetailRoute() {
   if (!userId) return <Redirect href="/admin/users" />;
 
   return (
-    <AdminUserDetailScreen
+    <AdminUserPasswordScreen
       onBack={() => router.back()}
-      onEditUser={(id) =>
-        router.push({ params: { userId: id }, pathname: "/admin/user/[userId]/edit" })
-      }
-      onResetPassword={(id) =>
-        router.push({ params: { userId: id }, pathname: "/admin/user/[userId]/password" })
+      onSaved={() =>
+        router.replace({ params: { userId }, pathname: "/admin/user/[userId]" })
       }
       userId={userId}
     />

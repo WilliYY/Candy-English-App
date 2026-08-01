@@ -6,6 +6,7 @@ import {
   adminUserStatusResponseSchema,
   adminUsersResponseSchema,
   type AdminUserCreateInput,
+  type AdminUserPasswordResetInput,
   type AdminUserStatusInput,
   type AdminUserUpdateInput,
   type AdminUsersInput,
@@ -1640,6 +1641,27 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         throw new ApiError(
           "INVALID_RESPONSE",
           "O servidor nao confirmou o status do usuario.",
+          502,
+        );
+      }
+      return parsed.data;
+    },
+
+    async resetAdminUserPassword(
+      userId: string,
+      input: AdminUserPasswordResetInput,
+    ) {
+      const response = await authenticatedRequest(
+        `/admin/users/${encodeURIComponent(userId)}/password`,
+        { body: JSON.stringify(input), method: "PATCH" },
+      );
+      const parsed = adminUserMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou a redefinicao da senha.",
           502,
         );
       }

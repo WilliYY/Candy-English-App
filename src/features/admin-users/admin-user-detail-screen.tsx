@@ -15,6 +15,7 @@ type Props = {
   client?: Client;
   onBack: () => void;
   onEditUser: (userId: string) => void;
+  onResetPassword: (userId: string) => void;
   userId: string;
 };
 
@@ -28,7 +29,13 @@ function dateLabel(value: string) {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(value));
 }
 
-export function AdminUserDetailScreen({ client, onBack, onEditUser, userId }: Props) {
+export function AdminUserDetailScreen({
+  client,
+  onBack,
+  onEditUser,
+  onResetPassword,
+  userId,
+}: Props) {
   const api = client ?? getMobileApi();
   const queryClient = useQueryClient();
   const user = useQuery({
@@ -110,6 +117,16 @@ export function AdminUserDetailScreen({ client, onBack, onEditUser, userId }: Pr
               >
                 <Text style={styles.primaryActionText}>Editar dados</Text>
               </Pressable>
+              <Pressable
+                accessibilityLabel="Redefinir senha do usuario"
+                accessibilityRole="button"
+                onPress={() => onResetPassword(userId)}
+                style={styles.primaryAction}
+              >
+                <Text style={styles.primaryActionText}>Redefinir senha</Text>
+              </Pressable>
+            </View>
+            <View style={styles.actionRow}>
               <Pressable
                 accessibilityLabel={user.data.isActive ? "Desativar usuario" : "Reativar usuario"}
                 accessibilityRole="button"

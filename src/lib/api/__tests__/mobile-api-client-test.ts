@@ -2016,7 +2016,7 @@ describe("MobileApiClient", () => {
     ]);
   });
 
-  it("creates, edits and confirms administrative user status changes", async () => {
+  it("creates, edits, changes status and resets administrative user passwords", async () => {
     const memory = createMemoryStore({
       ...sessionPayload("access-admin-write"),
       user: { ...sessionPayload().user, role: "ADMIN" },
@@ -2068,6 +2068,12 @@ describe("MobileApiClient", () => {
       expectedUpdatedAt: "2026-08-01T12:00:00.000Z",
       isActive: false,
     };
+    const passwordInput = {
+      confirmNewPassword: "NewStrongPass123",
+      confirmPasswordReset: true as const,
+      expectedUpdatedAt: "2026-08-01T12:00:00.000Z",
+      newPassword: "NewStrongPass123",
+    };
 
     await expect(client.createAdminUser(createInput)).resolves.toMatchObject({
       userId: "user/1",
@@ -2078,6 +2084,9 @@ describe("MobileApiClient", () => {
     await expect(
       client.changeAdminUserStatus("user/1", statusInput),
     ).resolves.toMatchObject({ changed: true, isActive: false });
+    await expect(
+      client.resetAdminUserPassword("user/1", passwordInput),
+    ).resolves.toMatchObject({ userId: "user/1" });
 
     expect(requests).toEqual([
       {
@@ -2094,6 +2103,11 @@ describe("MobileApiClient", () => {
         body: statusInput,
         method: "PATCH",
         url: "https://candy.example/api/mobile/v1/admin/users/user%2F1/status",
+      },
+      {
+        body: passwordInput,
+        method: "PATCH",
+        url: "https://candy.example/api/mobile/v1/admin/users/user%2F1/password",
       },
     ]);
   });

@@ -133,3 +133,10 @@ export type AdminUserStatusInput = {
   expectedUpdatedAt: string;
   isActive: boolean;
 };
+
+export type AdminUserPasswordResetInput = {
+  confirmNewPassword: string;
+  confirmPasswordReset: true;
+  expectedUpdatedAt: string;
+  newPassword: string;
+};
