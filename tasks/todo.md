@@ -93,7 +93,7 @@
 - [x] Pagamentos, parcelas, gastos e logs.
 - [x] Agenda mensal e fila diária.
 - [x] Presença, falta, reposição e histórico.
-- [ ] Contratos.
+- [x] Contratos.
 - [ ] Manutenção e opções operacionais seguras.
 - [ ] Candy XP administrativo.
 - [ ] Administração permitida da Catty.

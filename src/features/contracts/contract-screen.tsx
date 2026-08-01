@@ -21,6 +21,13 @@ import { colors } from "@/theme/tokens";
 
 type ContractScreenProps = {
   contractId: string;
+  loadContract?: () => Promise<{
+    fileName: string;
+    id: string;
+    mimeType: string;
+    sizeBytes: number;
+    title: string;
+  } | null>;
   onBack: () => void;
 };
 
@@ -34,19 +41,22 @@ function formatBytes(value: number) {
 
 export function ContractScreen({
   contractId,
+  loadContract,
   onBack,
 }: ContractScreenProps) {
   const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
-  const contractsQuery = useQuery({
+  const contractQuery = useQuery({
     enabled: contractId.length > 0,
-    queryFn: () => getMobileApi().getModule("contracts"),
-    queryKey: ["mobile-module", "contracts"],
+    queryFn: async () => {
+      if (loadContract) return loadContract();
+      const contracts = await getMobileApi().getModule("contracts");
+      return contracts.items.find((item) => item.id === contractId) ?? null;
+    },
+    queryKey: ["protected-contract", contractId, loadContract ? "custom" : "module"],
   });
-  const contract = contractsQuery.data?.items.find(
-    (item) => item.id === contractId,
-  );
+  const contract = contractQuery.data;
   const metadata =
     contract?.fileName && contract.mimeType && contract.sizeBytes
       ? {
@@ -122,7 +132,7 @@ export function ContractScreen({
           <Text style={styles.backText}>← Contratos</Text>
         </Pressable>
 
-        {contractsQuery.isPending ? (
+        {contractQuery.isPending ? (
           <ActivityIndicator
             accessibilityLabel="Carregando contrato"
             color={colors.brand}
@@ -168,12 +178,12 @@ export function ContractScreen({
           </>
         ) : null}
 
-        {!contractsQuery.isPending && !contract ? (
+        {!contractQuery.isPending && !contract ? (
           <View accessibilityRole="alert">
             <Text style={styles.error}>Contrato não encontrado ou removido.</Text>
             <Pressable
               accessibilityRole="button"
-              onPress={() => void contractsQuery.refetch()}
+              onPress={() => void contractQuery.refetch()}
               style={styles.retry}
             >
               <Text style={styles.retryText}>Tentar novamente</Text>

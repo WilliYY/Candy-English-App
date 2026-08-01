@@ -14,6 +14,16 @@ import {
   type MobileAdminAgendaLessonDetail,
 } from "@/lib/api/admin-agenda-contracts";
 import {
+  adminContractResponseSchema,
+  adminContractsResponseSchema,
+  adminContractUploadResponseSchema,
+  type AdminContractsInput,
+  type AdminContractUploadInput,
+  type AdminContractUploadResult,
+  type MobileAdminContract,
+  type MobileAdminContractCatalog,
+} from "@/lib/api/admin-contracts-contracts";
+import {
   adminFinanceActivityResponseSchema,
   adminFinanceExpenseMutationResponseSchema,
   adminFinancePaymentMutationResponseSchema,
@@ -97,6 +107,14 @@ export type {
   MobileAdminAgendaStatus,
   MobileAdminAgendaUnit,
 } from "@/lib/api/admin-agenda-contracts";
+export type {
+  AdminContractsInput,
+  AdminContractUploadFile,
+  AdminContractUploadInput,
+  AdminContractUploadResult,
+  MobileAdminContract,
+  MobileAdminContractCatalog,
+} from "@/lib/api/admin-contracts-contracts";
 export type {
   AdminFinanceActivityInput,
   AdminFinanceExpenseCreateInput,
@@ -1715,6 +1733,88 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         );
       }
       return parsed.data.agenda;
+    },
+
+    async getAdminContracts(
+      input: AdminContractsInput = {},
+    ): Promise<MobileAdminContractCatalog> {
+      const search = new URLSearchParams();
+      if (input.assignment) search.set("assignment", input.assignment);
+      if (input.cursor) search.set("cursor", input.cursor);
+      if (input.limit !== undefined) search.set("limit", String(input.limit));
+      if (input.query) search.set("query", input.query);
+      const response = await authenticatedRequest(
+        `/admin/contracts${search.size ? `?${search.toString()}` : ""}`,
+        { method: "GET" },
+      );
+      const parsed = adminContractsResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou um catalogo de contratos invalido.",
+          502,
+        );
+      }
+      return parsed.data.catalog;
+    },
+
+    async getAdminContract(
+      contractId: string,
+    ): Promise<MobileAdminContract> {
+      const response = await authenticatedRequest(
+        `/admin/contracts/${encodeURIComponent(contractId)}`,
+        { method: "GET" },
+      );
+      const parsed = adminContractResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou um contrato administrativo invalido.",
+          502,
+        );
+      }
+      return parsed.data.contract;
+    },
+
+    async uploadAdminContract(
+      input: AdminContractUploadInput,
+    ): Promise<AdminContractUploadResult> {
+      const formData = new FormData();
+      formData.append("confirmUpload", String(input.confirmUpload));
+      formData.append("operationId", input.operationId);
+      formData.append("studentProfileId", input.studentProfileId ?? "");
+      formData.append("title", input.title);
+      formData.append(
+        "contract",
+        {
+          name: input.file.name,
+          type: input.file.mimeType,
+          uri: input.file.uri,
+        } as unknown as Blob,
+      );
+      const response = await authenticatedRequest("/admin/contracts", {
+        body: formData,
+        method: "POST",
+      });
+      const parsed = adminContractUploadResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou o envio do contrato.",
+          502,
+        );
+      }
+      return {
+        contract: parsed.data.result.contract,
+        message: parsed.data.message,
+        replayed: parsed.data.result.replayed,
+      };
     },
 
     async getAdminAgendaLesson(

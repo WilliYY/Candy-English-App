@@ -2733,4 +2733,106 @@ describe("MobileApiClient", () => {
       },
     ]);
   });
+
+  it("lists, details and uploads ADMIN contracts without putting tokens in URLs", async () => {
+    const memory = createMemoryStore({
+      ...sessionPayload("access-admin-contracts"),
+      user: { ...sessionPayload().user, role: "ADMIN" },
+    });
+    const contract = {
+      createdAt: "2026-08-01T20:00:00.000Z",
+      fileName: "matricula.pdf",
+      id: "contract/1",
+      mimeType: "application/pdf" as const,
+      sizeBytes: 2048,
+      student: { id: "student/1", name: "Ana Candy" },
+      title: "Contrato de matricula",
+      uploadedByName: "Admin Candy",
+    };
+    const responses = [
+      {
+        catalog: {
+          contracts: [contract],
+          generatedAt: "2026-08-01T20:00:00.000Z",
+          hasMore: false,
+          nextCursor: null,
+          students: [{ id: "student/1", name: "Ana Candy" }],
+          summary: { general: 0, studentSpecific: 1, total: 1 },
+        },
+        ok: true,
+      },
+      { contract, ok: true },
+      {
+        message: "Contrato enviado com sucesso.",
+        ok: true,
+        result: { contract, replayed: false },
+      },
+    ];
+    const requests: { authorization: string | null; body: FormData | null; method: string; url: string }[] = [];
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        authorization: new Headers(init?.headers).get("authorization"),
+        body: init?.body instanceof FormData ? init.body : null,
+        method: init?.method ?? "GET",
+        url,
+      });
+      return jsonResponse(200, responses.shift());
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(
+      client.getAdminContracts({
+        assignment: "STUDENT",
+        cursor: "contract/previous",
+        limit: 30,
+        query: "Ana",
+      }),
+    ).resolves.toMatchObject({ contracts: [{ id: "contract/1" }] });
+    await expect(client.getAdminContract("contract/1")).resolves.toMatchObject({
+      id: "contract/1",
+      student: { name: "Ana Candy" },
+    });
+    await expect(
+      client.uploadAdminContract({
+        confirmUpload: true,
+        file: {
+          mimeType: "application/pdf",
+          name: "novo.pdf",
+          size: 4096,
+          uri: "file:///novo.pdf",
+        },
+        operationId: "9dfda8f1-4c48-4302-a2a1-5611d652e151",
+        studentProfileId: "student/1",
+        title: "Contrato novo",
+      }),
+    ).resolves.toMatchObject({ message: "Contrato enviado com sucesso.", replayed: false });
+
+    expect(requests.map(({ method, url }) => ({ method, url }))).toEqual([
+      {
+        method: "GET",
+        url: "https://candy.example/api/mobile/v1/admin/contracts?assignment=STUDENT&cursor=contract%2Fprevious&limit=30&query=Ana",
+      },
+      {
+        method: "GET",
+        url: "https://candy.example/api/mobile/v1/admin/contracts/contract%2F1",
+      },
+      {
+        method: "POST",
+        url: "https://candy.example/api/mobile/v1/admin/contracts",
+      },
+    ]);
+    expect(requests.every((request) => request.authorization === "Bearer access-admin-contracts")).toBe(true);
+    expect(requests.every((request) => !request.url.includes("access-admin-contracts"))).toBe(true);
+    expect(requests[2]!.body?.get("operationId")).toBe(
+      "9dfda8f1-4c48-4302-a2a1-5611d652e151",
+    );
+    expect(requests[2]!.body?.get("studentProfileId")).toBe("student/1");
+    expect(requests[2]!.body?.get("title")).toBe("Contrato novo");
+    expect(requests[2]!.body?.get("contract")).not.toBeNull();
+  });
 });

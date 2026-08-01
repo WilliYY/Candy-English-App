@@ -6,4 +6,10 @@ describe("DashboardScreen", () => {
       expect.objectContaining({ label: "Contratos", slug: "contracts" }),
     );
   });
+
+  it("offers contract administration to ADMIN", () => {
+    expect(getDashboardModules("ADMIN")).toContainEqual(
+      expect.objectContaining({ label: "Contratos", slug: "contracts" }),
+    );
+  });
 });

@@ -53,6 +53,11 @@ Cada ocorrência abre um detalhe com histórico do aluno e ações confirmadas d
 presença, falta, reset e criação de reposição. As escritas usam a versão atual e
 uma operação idempotente, impedem reposição ativa duplicada e sincronizam com o
 mesmo banco de dados usado pelo site.
+O módulo ADMIN de Contratos possui catálogo pesquisável e paginado, indicadores
+de documentos gerais/vinculados, seleção de aluno ativo e upload PDF confirmado
+e idempotente. O detalhe baixa pelo Bearer token sem colocá-lo na URL, valida o
+arquivo e usa cache temporário apagado no logout. Como site e app usam o mesmo
+backend, o contrato enviado em um aparece no outro automaticamente.
 Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme
@@ -68,6 +73,8 @@ demais operações de escrita segue conforme
   previews, downloads, lojas e atualizações.
 - [`docs/teacher-smoke.md`](docs/teacher-smoke.md): matriz de isolamento e
   verificação automatizada completa do perfil teacher.
+- [`docs/admin-contracts.md`](docs/admin-contracts.md): catálogo, envio e
+  download protegido de contratos no perfil ADMIN.
 - [`tasks/plan.md`](tasks/plan.md): fases e checkpoints.
 - [`tasks/todo.md`](tasks/todo.md): tarefas verificáveis.
 

@@ -35,6 +35,11 @@ export default function HomeRoute() {
           return;
         }
 
+        if (user.role === "ADMIN" && slug === "contracts") {
+          router.push("/admin/contracts");
+          return;
+        }
+
         if (slug === "live-class") {
           router.push("/live-class");
           return;

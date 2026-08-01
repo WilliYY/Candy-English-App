@@ -104,4 +104,35 @@ describe("ContractScreen", () => {
     await view.unmount();
     queryClient.clear();
   });
+
+  it("loads ADMIN metadata without depending on the generic role module", async () => {
+    const getModule = jest.fn();
+    jest.mocked(getMobileApi).mockReturnValue({
+      getContractDownloadSource: jest.fn(),
+      getModule,
+    } as unknown as ReturnType<typeof getMobileApi>);
+    const loadContract = jest.fn(async () => ({
+      fileName: "admin.pdf",
+      id: "contract-admin",
+      mimeType: "application/pdf",
+      sizeBytes: 2048,
+      title: "Contrato administrativo",
+    }));
+    const { queryClient, Wrapper } = createWrapper();
+    const view = await render(
+      <ContractScreen
+        contractId="contract-admin"
+        loadContract={loadContract}
+        onBack={jest.fn()}
+      />,
+      { wrapper: Wrapper },
+    );
+
+    expect(await view.findByText("Contrato administrativo")).toBeTruthy();
+    expect(loadContract).toHaveBeenCalledTimes(1);
+    expect(getModule).not.toHaveBeenCalled();
+
+    view.unmount();
+    queryClient.clear();
+  });
 });
