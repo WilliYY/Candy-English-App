@@ -50,6 +50,7 @@ const roleContent: Record<
       { slug: "homeworks", label: "Homework", description: "Crie, duplique e acompanhe" },
       { slug: "live-class", label: "Aula ao vivo", description: "Suas salas e estado da integração" },
       { slug: "messages", label: "Mensagens", description: "Conversas com alunos vinculados" },
+      { slug: "contracts", label: "Contratos", description: "Documentos gerais e de alunos vinculados" },
       { slug: "secretary", label: "Secretaria", description: "Pré-cadastros permitidos" },
     ],
   },
@@ -66,6 +67,10 @@ const roleContent: Record<
     ],
   },
 };
+
+export function getDashboardModules(role: Role) {
+  return roleContent[role].modules;
+}
 
 type DashboardScreenProps = {
   name: string;

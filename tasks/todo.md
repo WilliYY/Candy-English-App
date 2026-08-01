@@ -69,7 +69,7 @@
 - [x] Editor nativo de campos interativos.
 - [x] Fila de submissões e feedback.
 - [x] Mensagens com alunos vinculados.
-- [ ] Contratos permitidos.
+- [x] Contratos permitidos.
 - [x] Pré-cadastros próprios/atribuídos.
 - [ ] Conversão autorizada de pré-cadastro.
 - [ ] Candy XP permitido.

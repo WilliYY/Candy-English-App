@@ -18,8 +18,9 @@ incluindo conflito entre site/aparelho, criação, edição, duplicação e excl
 confirmada de homeworks da teacher, fila nativa de entregas, feedback e liberação
 de nova tentativa com conflito seguro, editor nativo de campos interativos com
 posição compatível com o site, tarefas, correções e conquistas, além de homeworks
-`TEXT`/interativas com desenho, listening e envio,
-já estão implementados. Arquivos protegidos usam download autenticado, cache
+`TEXT`/interativas com desenho, listening e envio já estão implementados. A
+teacher também acessa somente contratos gerais ou dos próprios alunos
+vinculados. Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme
 [`docs/spec.md`](docs/spec.md) e [`tasks/plan.md`](tasks/plan.md).

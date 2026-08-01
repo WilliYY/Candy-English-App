@@ -12,7 +12,7 @@ export default function ModuleRoute() {
     (user?.role === "STUDENT" &&
       (slug === "contracts" || slug === "homeworks" || slug === "lessons")) ||
     (user?.role === "TEACHER" &&
-      (slug === "homeworks" || slug === "lessons"));
+      (slug === "contracts" || slug === "homeworks" || slug === "lessons"));
 
   function openItem(item: { id: string }) {
     if (slug === "contracts") {
