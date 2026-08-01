@@ -67,7 +67,7 @@
 - [x] Criação e edição de aula interativa.
 - [x] Homework: criar, duplicar, editar e excluir.
 - [ ] Editor nativo de campos interativos.
-- [ ] Fila de submissões e feedback.
+- [x] Fila de submissões e feedback.
 - [x] Mensagens com alunos vinculados.
 - [ ] Contratos permitidos.
 - [x] Pré-cadastros próprios/atribuídos.

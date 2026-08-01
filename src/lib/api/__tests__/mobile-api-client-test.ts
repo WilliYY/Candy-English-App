@@ -1430,4 +1430,147 @@ describe("MobileApiClient", () => {
       status: 502,
     });
   });
+
+  it("loads the teacher submission queue and protected submission detail", async () => {
+    const memory = createMemoryStore(sessionPayload("access-submissions"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-submissions",
+      );
+      if (url.endsWith("/teacher/submissions")) {
+        return jsonResponse(200, {
+          hasMore: false,
+          ok: true,
+          submissions: [
+            {
+              feedbackPresent: false,
+              homeworkId: "homework-1",
+              homeworkKind: "TEXT",
+              homeworkTitle: "Daily conversation",
+              id: "submission/1",
+              lessonTitle: "Conversation",
+              reviewedAt: null,
+              status: "SUBMITTED",
+              studentLevel: "A1",
+              studentName: "Ana",
+              submittedAt: "2026-08-01T15:00:00.000Z",
+            },
+          ],
+        });
+      }
+
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/teacher/submissions/submission%2F1",
+      );
+      return jsonResponse(200, {
+        ok: true,
+        submission: {
+          answers: [
+            {
+              id: "text-answer",
+              label: "How are you?",
+              type: "TEXT",
+              value: "I am fine.",
+            },
+          ],
+          feedback: null,
+          hasAnnotations: false,
+          homework: {
+            id: "homework-1",
+            instructions: "Answer in English.",
+            kind: "TEXT",
+            lessonTitle: "Conversation",
+            questions: [
+              {
+                expectedAnswer: "I am fine.",
+                id: "question-1",
+                prompt: "How are you?",
+              },
+            ],
+            title: "Daily conversation",
+          },
+          id: "submission/1",
+          reviewedAt: null,
+          status: "SUBMITTED",
+          student: { id: "student-1", level: "A1", name: "Ana" },
+          submittedAt: "2026-08-01T15:00:00.000Z",
+        },
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getTeacherSubmissions()).resolves.toMatchObject({
+      hasMore: false,
+      submissions: [{ id: "submission/1", studentName: "Ana" }],
+    });
+    await expect(client.getTeacherSubmission("submission/1")).resolves.toMatchObject({
+      answers: [{ value: "I am fine." }],
+      id: "submission/1",
+      student: { name: "Ana" },
+    });
+  });
+
+  it("validates and sends teacher feedback and redo operations", async () => {
+    const memory = createMemoryStore(sessionPayload("access-review"));
+    const requests: { body: unknown; url: string }[] = [];
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        url,
+      });
+      const returned = url.endsWith("/redo");
+      return jsonResponse(200, {
+        feedback: "Great work!",
+        message: returned
+          ? "Nova tentativa liberada com sucesso."
+          : "Feedback enviado com sucesso.",
+        ok: true,
+        replayed: false,
+        reviewedAt: returned ? null : "2026-08-01T16:00:00.000Z",
+        status: returned ? "RETURNED" : "REVIEWED",
+        submissionId: "submission/1",
+        submittedAt: "2026-08-01T15:00:00.000Z",
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+    const version = {
+      expectedReviewedAt: null,
+      expectedStatus: "SUBMITTED" as const,
+      expectedSubmittedAt: "2026-08-01T15:00:00.000Z",
+      operationId: "11111111-1111-4111-8111-111111111111",
+    };
+
+    await expect(
+      client.reviewTeacherSubmission("submission/1", {
+        ...version,
+        feedback: "Great work!",
+      }),
+    ).resolves.toMatchObject({ status: "REVIEWED" });
+    await expect(
+      client.redoTeacherSubmission("submission/1", {
+        ...version,
+        feedback: "Great work!",
+      }),
+    ).resolves.toMatchObject({ status: "RETURNED" });
+    expect(requests).toEqual([
+      {
+        body: { ...version, feedback: "Great work!" },
+        url: "https://candy.example/api/mobile/v1/teacher/submissions/submission%2F1/review",
+      },
+      {
+        body: { ...version, feedback: "Great work!" },
+        url: "https://candy.example/api/mobile/v1/teacher/submissions/submission%2F1/redo",
+      },
+    ]);
+  });
 });

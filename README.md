@@ -15,7 +15,8 @@ entrega de atividades, Catty autenticada com histórico compartilhado e aula ao
 vivo com manutenção sincronizada, central de avisos do aluno para aulas,
 detalhes, criação e edição protegida do planejamento de aulas da teacher,
 incluindo conflito entre site/aparelho, criação, edição, duplicação e exclusão
-confirmada de homeworks da teacher, tarefas, correções e conquistas, além de
+confirmada de homeworks da teacher, fila nativa de entregas, feedback e liberação
+de nova tentativa com conflito seguro, tarefas, correções e conquistas, além de
 homeworks `TEXT`/interativas com desenho, listening e envio,
 já estão implementados. Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das

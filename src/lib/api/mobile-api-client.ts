@@ -486,6 +486,149 @@ export type MobileTeacherHomeworkUpdateInput = z.infer<
   typeof teacherHomeworkUpdateInputSchema
 >;
 
+const teacherSubmissionStatusSchema = z.enum([
+  "RETURNED",
+  "REVIEWED",
+  "SUBMITTED",
+]);
+
+const teacherSubmissionQueueItemSchema = z
+  .object({
+    feedbackPresent: z.boolean(),
+    homeworkId: z.string().min(1),
+    homeworkKind: z.enum(["INTERACTIVE", "TEXT"]),
+    homeworkTitle: z.string().min(1),
+    id: z.string().min(1),
+    lessonTitle: z.string().min(1),
+    reviewedAt: z.string().datetime().nullable(),
+    status: teacherSubmissionStatusSchema,
+    studentLevel: z.string().nullable(),
+    studentName: z.string().min(1),
+    submittedAt: z.string().datetime(),
+  })
+  .strict();
+
+const teacherSubmissionQueueResponseSchema = z
+  .object({
+    hasMore: z.boolean(),
+    ok: z.literal(true),
+    submissions: z.array(teacherSubmissionQueueItemSchema).max(100),
+  })
+  .strict();
+
+const teacherSubmissionDetailSchema = z
+  .object({
+    answers: z
+      .array(
+        z
+          .object({
+            id: z.string().min(1),
+            label: z.string().min(1),
+            type: z.enum([
+              "CHECKBOX",
+              "DRAWING",
+              "LISTENING",
+              "LONG_TEXT",
+              "SHORT_TEXT",
+              "TEXT",
+              "TINY_TEXT",
+            ]),
+            value: z.string().max(1_000_000),
+          })
+          .strict(),
+      )
+      .max(120),
+    feedback: z.string().nullable(),
+    hasAnnotations: z.boolean(),
+    homework: z
+      .object({
+        id: z.string().min(1),
+        instructions: z.string().nullable(),
+        kind: z.enum(["INTERACTIVE", "TEXT"]),
+        lessonTitle: z.string().min(1),
+        questions: z
+          .array(
+            z
+              .object({
+                expectedAnswer: z.string().nullable(),
+                id: z.string().min(1),
+                prompt: z.string().min(1),
+              })
+              .strict(),
+          )
+          .max(50),
+        title: z.string().min(1),
+      })
+      .strict(),
+    id: z.string().min(1),
+    reviewedAt: z.string().datetime().nullable(),
+    status: teacherSubmissionStatusSchema,
+    student: z
+      .object({
+        id: z.string().min(1),
+        level: z.string().nullable(),
+        name: z.string().min(1),
+      })
+      .strict(),
+    submittedAt: z.string().datetime(),
+  })
+  .strict();
+
+const teacherSubmissionDetailResponseSchema = z
+  .object({
+    ok: z.literal(true),
+    submission: teacherSubmissionDetailSchema,
+  })
+  .strict();
+
+const teacherSubmissionVersionInputSchema = z.object({
+  expectedReviewedAt: z.string().datetime().nullable(),
+  expectedStatus: z.enum(["REVIEWED", "SUBMITTED"]),
+  expectedSubmittedAt: z.string().datetime(),
+  operationId: z.string().uuid(),
+});
+
+const teacherSubmissionReviewInputSchema = teacherSubmissionVersionInputSchema
+  .extend({ feedback: z.string().trim().min(2).max(6000) })
+  .strict();
+
+const teacherSubmissionRedoInputSchema = teacherSubmissionVersionInputSchema
+  .extend({ feedback: z.string().trim().max(6000).nullable() })
+  .strict();
+
+const teacherSubmissionMutationResponseSchema = z
+  .object({
+    feedback: z.string().nullable(),
+    message: z.string().min(1),
+    ok: z.literal(true),
+    replayed: z.boolean(),
+    reviewedAt: z.string().datetime().nullable(),
+    status: teacherSubmissionStatusSchema,
+    submissionId: z.string().min(1),
+    submittedAt: z.string().datetime(),
+  })
+  .strict();
+
+export type MobileTeacherSubmissionDetail = z.infer<
+  typeof teacherSubmissionDetailSchema
+>;
+export type MobileTeacherSubmissionMutationResult = z.infer<
+  typeof teacherSubmissionMutationResponseSchema
+>;
+export type MobileTeacherSubmissionQueue = {
+  hasMore: boolean;
+  submissions: MobileTeacherSubmissionQueueItem[];
+};
+export type MobileTeacherSubmissionQueueItem = z.infer<
+  typeof teacherSubmissionQueueItemSchema
+>;
+export type MobileTeacherSubmissionRedoInput = z.infer<
+  typeof teacherSubmissionRedoInputSchema
+>;
+export type MobileTeacherSubmissionReviewInput = z.infer<
+  typeof teacherSubmissionReviewInputSchema
+>;
+
 const chatThreadSchema = z
   .object({
     id: z.string().min(1),
@@ -1515,6 +1658,104 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         { body: JSON.stringify(validated.data), method: "DELETE" },
       );
       const parsed = teacherHomeworkDeleteResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return parsed.data;
+    },
+
+    async getTeacherSubmissions(): Promise<MobileTeacherSubmissionQueue> {
+      const response = await authenticatedRequest("/teacher/submissions", {
+        method: "GET",
+      });
+      const parsed = teacherSubmissionQueueResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return {
+        hasMore: parsed.data.hasMore,
+        submissions: parsed.data.submissions,
+      };
+    },
+
+    async getTeacherSubmission(
+      submissionId: string,
+    ): Promise<MobileTeacherSubmissionDetail> {
+      const response = await authenticatedRequest(
+        `/teacher/submissions/${encodeURIComponent(submissionId)}`,
+        { method: "GET" },
+      );
+      const parsed = teacherSubmissionDetailResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return parsed.data.submission;
+    },
+
+    async reviewTeacherSubmission(
+      submissionId: string,
+      input: MobileTeacherSubmissionReviewInput,
+    ): Promise<MobileTeacherSubmissionMutationResult> {
+      const validated = teacherSubmissionReviewInputSchema.safeParse(input);
+      if (!validated.success) {
+        throw new ApiError(
+          "INVALID_REQUEST",
+          "Revise o feedback antes de enviar.",
+          400,
+        );
+      }
+      const response = await authenticatedRequest(
+        `/teacher/submissions/${encodeURIComponent(submissionId)}/review`,
+        { body: JSON.stringify(validated.data), method: "POST" },
+      );
+      const parsed = teacherSubmissionMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return parsed.data;
+    },
+
+    async redoTeacherSubmission(
+      submissionId: string,
+      input: MobileTeacherSubmissionRedoInput,
+    ): Promise<MobileTeacherSubmissionMutationResult> {
+      const validated = teacherSubmissionRedoInputSchema.safeParse(input);
+      if (!validated.success) {
+        throw new ApiError(
+          "INVALID_REQUEST",
+          "Revise a liberação da nova tentativa.",
+          400,
+        );
+      }
+      const response = await authenticatedRequest(
+        `/teacher/submissions/${encodeURIComponent(submissionId)}/redo`,
+        { body: JSON.stringify(validated.data), method: "POST" },
+      );
+      const parsed = teacherSubmissionMutationResponseSchema.safeParse(
         await response.json(),
       );
       if (!parsed.success) {

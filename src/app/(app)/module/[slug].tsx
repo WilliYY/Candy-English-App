@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { ModuleScreen } from "@/features/modules/module-screen";
+import { TeacherSubmissionQueueScreen } from "@/features/teacher-submissions/teacher-submission-queue-screen";
 import { useAuth } from "@/providers/auth-provider";
 
 export default function ModuleRoute() {
@@ -42,6 +43,20 @@ export default function ModuleRoute() {
       params: { homeworkId: item.id },
       pathname: "/homework/[homeworkId]",
     });
+  }
+
+  if (user?.role === "TEACHER" && slug === "submissions") {
+    return (
+      <TeacherSubmissionQueueScreen
+        onBack={() => router.back()}
+        onOpenSubmission={(submissionId) =>
+          router.push({
+            params: { submissionId },
+            pathname: "/teacher/submission/[submissionId]",
+          })
+        }
+      />
+    );
   }
 
   return (
