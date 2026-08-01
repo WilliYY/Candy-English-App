@@ -1,9 +1,17 @@
 import { z } from "zod";
 
 import {
+  adminAgendaAttendanceMutationResponseSchema,
+  adminAgendaLessonResponseSchema,
+  adminAgendaMakeupMutationResponseSchema,
   adminAgendaResponseSchema,
+  type AdminAgendaAttendanceInput,
+  type AdminAgendaAttendanceMutation,
   type AdminAgendaInput,
+  type AdminAgendaMakeupInput,
+  type AdminAgendaMakeupMutation,
   type MobileAdminAgenda,
+  type MobileAdminAgendaLessonDetail,
 } from "@/lib/api/admin-agenda-contracts";
 import {
   adminFinanceActivityResponseSchema,
@@ -76,10 +84,16 @@ import {
 } from "@/lib/api/teacher-catty-contracts";
 
 export type {
+  AdminAgendaAttendanceInput,
+  AdminAgendaAttendanceMutation,
   AdminAgendaInput,
+  AdminAgendaMakeupInput,
+  AdminAgendaMakeupMutation,
   MobileAdminAgenda,
   MobileAdminAgendaDay,
+  MobileAdminAgendaHistoryItem,
   MobileAdminAgendaLesson,
+  MobileAdminAgendaLessonDetail,
   MobileAdminAgendaStatus,
   MobileAdminAgendaUnit,
 } from "@/lib/api/admin-agenda-contracts";
@@ -1701,6 +1715,68 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         );
       }
       return parsed.data.agenda;
+    },
+
+    async getAdminAgendaLesson(
+      lessonId: string,
+    ): Promise<MobileAdminAgendaLessonDetail> {
+      const response = await authenticatedRequest(
+        `/admin/agenda/${encodeURIComponent(lessonId)}`,
+        { method: "GET" },
+      );
+      const parsed = adminAgendaLessonResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou um detalhe de agenda invalido.",
+          502,
+        );
+      }
+      return parsed.data.detail;
+    },
+
+    async updateAdminAgendaAttendance(
+      lessonId: string,
+      input: AdminAgendaAttendanceInput,
+    ): Promise<AdminAgendaAttendanceMutation> {
+      const response = await authenticatedRequest(
+        `/admin/agenda/${encodeURIComponent(lessonId)}`,
+        { body: JSON.stringify(input), method: "PATCH" },
+      );
+      const parsed = adminAgendaAttendanceMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou a atualizacao da presenca.",
+          502,
+        );
+      }
+      return parsed.data.result;
+    },
+
+    async createAdminAgendaMakeup(
+      lessonId: string,
+      input: AdminAgendaMakeupInput,
+    ): Promise<AdminAgendaMakeupMutation> {
+      const response = await authenticatedRequest(
+        `/admin/agenda/${encodeURIComponent(lessonId)}/makeups`,
+        { body: JSON.stringify(input), method: "POST" },
+      );
+      const parsed = adminAgendaMakeupMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou a criacao da reposicao.",
+          502,
+        );
+      }
+      return parsed.data.result;
     },
 
     async getAdminFinanceActivity(

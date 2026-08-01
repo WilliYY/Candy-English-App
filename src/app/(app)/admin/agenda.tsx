@@ -10,5 +10,15 @@ export default function AdminAgendaRoute() {
   if (!user) return null;
   if (user.role !== "ADMIN") return <Redirect href="/home" />;
 
-  return <AdminAgendaScreen onBack={() => router.back()} />;
+  return (
+    <AdminAgendaScreen
+      onBack={() => router.back()}
+      onOpenLesson={(lessonId) =>
+        router.push({
+          params: { lessonId },
+          pathname: "/admin/agenda/lesson/[lessonId]",
+        })
+      }
+    />
+  );
 }

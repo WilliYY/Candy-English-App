@@ -49,6 +49,10 @@ O ADMIN também possui agenda mensal por unidade e fila diária pesquisável,
 com contagens de aulas, presenças, faltas e reposições, atualização a cada 15
 segundos e cartões operacionais com horário, telefone e observações internas.
 Essa agenda continua separada das contas e aulas pedagógicas do AVA.
+Cada ocorrência abre um detalhe com histórico do aluno e ações confirmadas de
+presença, falta, reset e criação de reposição. As escritas usam a versão atual e
+uma operação idempotente, impedem reposição ativa duplicada e sincronizam com o
+mesmo banco de dados usado pelo site.
 Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme

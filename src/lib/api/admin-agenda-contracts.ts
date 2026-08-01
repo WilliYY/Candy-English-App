@@ -52,16 +52,61 @@ const agendaSchema = z
     unit: z.enum(["ALL", "IVATE", "DOURADINA"]),
   })
   .strict();
+const historyItemSchema = z
+  .object({
+    action: z.string().min(1).max(80),
+    actorName: z.string().min(1).max(120).nullable(),
+    createdAt: z.string().datetime(),
+    description: z.string().min(1).max(500),
+    id: z.string().min(1).max(200),
+    lessonId: z.string().min(1).max(200).nullable(),
+  })
+  .strict();
+const lessonDetailSchema = z
+  .object({
+    history: z.array(historyItemSchema).max(100),
+    lesson: lessonSchema,
+  })
+  .strict();
+const attendanceMutationSchema = z
+  .object({
+    lesson: lessonSchema,
+    message: z.string().min(1).max(300),
+    replayed: z.boolean(),
+  })
+  .strict();
+const makeupMutationSchema = z
+  .object({
+    makeupLesson: lessonSchema,
+    message: z.string().min(1).max(300),
+    replayed: z.boolean(),
+  })
+  .strict();
 
 export const adminAgendaResponseSchema = z
   .object({ agenda: agendaSchema, ok: z.literal(true) })
+  .strict();
+export const adminAgendaLessonResponseSchema = z
+  .object({ detail: lessonDetailSchema, ok: z.literal(true) })
+  .strict();
+export const adminAgendaAttendanceMutationResponseSchema = z
+  .object({ ok: z.literal(true), result: attendanceMutationSchema })
+  .strict();
+export const adminAgendaMakeupMutationResponseSchema = z
+  .object({ ok: z.literal(true), result: makeupMutationSchema })
   .strict();
 
 export type MobileAdminAgenda = z.infer<typeof agendaSchema>;
 export type MobileAdminAgendaDay = MobileAdminAgenda["days"][number];
 export type MobileAdminAgendaLesson = z.infer<typeof lessonSchema>;
+export type MobileAdminAgendaLessonDetail = z.infer<typeof lessonDetailSchema>;
+export type MobileAdminAgendaHistoryItem = z.infer<typeof historyItemSchema>;
 export type MobileAdminAgendaStatus = z.infer<typeof statusSchema>;
 export type MobileAdminAgendaUnit = z.infer<typeof unitSchema>;
+export type AdminAgendaAttendanceMutation = z.infer<
+  typeof attendanceMutationSchema
+>;
+export type AdminAgendaMakeupMutation = z.infer<typeof makeupMutationSchema>;
 
 export type AdminAgendaInput = {
   date?: string;
@@ -69,4 +114,18 @@ export type AdminAgendaInput = {
   query?: string;
   unit?: MobileAdminAgendaUnit | "ALL";
   year?: number;
+};
+export type AdminAgendaAttendanceInput = {
+  confirmChange: true;
+  expectedUpdatedAt: string;
+  operationId: string;
+  status: "ATTENDED" | "MISSED" | "SCHEDULED";
+};
+export type AdminAgendaMakeupInput = {
+  confirmCreate: true;
+  date: string;
+  expectedUpdatedAt: string;
+  notes: string | null;
+  operationId: string;
+  time: string;
 };

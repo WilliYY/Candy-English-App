@@ -2611,4 +2611,126 @@ describe("MobileApiClient", () => {
       "https://candy.example/api/mobile/v1/admin/agenda?date=2026-08-10&month=8&query=Ana&unit=IVATE&year=2026",
     ]);
   });
+
+  it("loads agenda lesson history and sends confirmed idempotent operations", async () => {
+    const memory = createMemoryStore({
+      ...sessionPayload("access-admin-agenda-operations"),
+      user: { ...sessionPayload().user, role: "ADMIN" },
+    });
+    const lesson = {
+      date: "2026-08-10",
+      id: "lesson/1",
+      isMakeup: false,
+      lessonNote: "Levar material",
+      status: "SCHEDULED" as const,
+      studentId: "student/1",
+      studentName: "Ana Candy",
+      studentNote: "Responsavel avisado",
+      studentPhone: "44999999999",
+      studentUnit: "IVATE" as const,
+      time: "14:00",
+      updatedAt: "2026-08-11T12:00:00.000Z",
+    };
+    const attendanceInput = {
+      confirmChange: true as const,
+      expectedUpdatedAt: lesson.updatedAt,
+      operationId: "11111111-1111-4111-8111-111111111111",
+      status: "ATTENDED" as const,
+    };
+    const makeupInput = {
+      confirmCreate: true as const,
+      date: "2026-08-20",
+      expectedUpdatedAt: lesson.updatedAt,
+      notes: "Reposicao combinada",
+      operationId: "22222222-2222-4222-8222-222222222222",
+      time: "15:30",
+    };
+    const responses = [
+      {
+        detail: {
+          history: [
+            {
+              action: "ATTENDANCE",
+              actorName: "Williany",
+              createdAt: "2026-08-11T12:05:00.000Z",
+              description: "Presenca confirmada: Ana Candy.",
+              id: "log/1",
+              lessonId: "lesson/1",
+            },
+          ],
+          lesson,
+        },
+        ok: true,
+      },
+      {
+        ok: true,
+        result: {
+          lesson: { ...lesson, status: "ATTENDED" },
+          message: "Presenca atualizada.",
+          replayed: false,
+        },
+      },
+      {
+        ok: true,
+        result: {
+          makeupLesson: {
+            ...lesson,
+            date: "2026-08-20",
+            id: "makeup/1",
+            isMakeup: true,
+            status: "MAKEUP_SCHEDULED",
+            time: "15:30",
+          },
+          message: "Reposicao criada.",
+          replayed: false,
+        },
+      },
+    ];
+    const requests: { body: unknown; method: string; url: string }[] = [];
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        method: init?.method ?? "GET",
+        url,
+      });
+      return jsonResponse(200, responses.shift());
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getAdminAgendaLesson("lesson/1")).resolves.toMatchObject({
+      history: [{ actorName: "Williany" }],
+      lesson: { id: "lesson/1" },
+    });
+    await expect(
+      client.updateAdminAgendaAttendance("lesson/1", attendanceInput),
+    ).resolves.toMatchObject({ lesson: { status: "ATTENDED" }, replayed: false });
+    await expect(
+      client.createAdminAgendaMakeup("lesson/1", makeupInput),
+    ).resolves.toMatchObject({
+      makeupLesson: { id: "makeup/1" },
+      replayed: false,
+    });
+    expect(requests).toEqual([
+      {
+        body: null,
+        method: "GET",
+        url: "https://candy.example/api/mobile/v1/admin/agenda/lesson%2F1",
+      },
+      {
+        body: attendanceInput,
+        method: "PATCH",
+        url: "https://candy.example/api/mobile/v1/admin/agenda/lesson%2F1",
+      },
+      {
+        body: makeupInput,
+        method: "POST",
+        url: "https://candy.example/api/mobile/v1/admin/agenda/lesson%2F1/makeups",
+      },
+    ]);
+  });
 });

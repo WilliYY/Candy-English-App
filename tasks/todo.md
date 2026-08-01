@@ -92,7 +92,7 @@
 - [x] Financeiro por unidade.
 - [x] Pagamentos, parcelas, gastos e logs.
 - [x] Agenda mensal e fila diária.
-- [ ] Presença, falta, reposição e histórico.
+- [x] Presença, falta, reposição e histórico.
 - [ ] Contratos.
 - [ ] Manutenção e opções operacionais seguras.
 - [ ] Candy XP administrativo.
