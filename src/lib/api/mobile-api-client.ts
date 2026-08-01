@@ -336,6 +336,156 @@ export type MobileTeacherLessonUpdateInput = z.infer<
   typeof teacherLessonUpdateInputSchema
 >;
 
+const teacherHomeworkQuestionInputSchema = z
+  .object({
+    expectedAnswer: z.string().max(1000).nullable(),
+    prompt: z.string().min(3).max(1000),
+  })
+  .strict();
+
+const teacherHomeworkMutationInputSchema = z
+  .object({
+    dueDate: z.string().datetime().nullable(),
+    instructions: z.string().max(2000).nullable(),
+    lessonId: z.string().min(1).max(80),
+    operationId: z.string().uuid(),
+    questions: z.array(teacherHomeworkQuestionInputSchema).max(50),
+    status: z.enum(["ARCHIVED", "DRAFT", "PUBLISHED"]),
+    studentProfileIds: z.array(z.string().min(1).max(80)).min(1).max(50),
+    title: z.string().min(3).max(160),
+  })
+  .strict();
+
+const teacherHomeworkUpdateInputSchema = teacherHomeworkMutationInputSchema
+  .extend({ expectedUpdatedAt: z.string().datetime() })
+  .strict();
+
+const teacherHomeworkEditorSchema = teacherHomeworkMutationInputSchema
+  .omit({ operationId: true })
+  .extend({
+    assetFileName: z.string().min(1).nullable(),
+    hasSubmissions: z.boolean(),
+    id: z.string().min(1),
+    interactiveFieldCount: z.number().int().min(0),
+    kind: z.enum(["INTERACTIVE", "TEXT"]),
+    questions: z
+      .array(
+        teacherHomeworkQuestionInputSchema.extend({ id: z.string().min(1) }),
+      )
+      .max(50),
+    studentProfileIds: z.array(z.string().min(1).max(80)).max(50),
+    updatedAt: z.string().datetime(),
+  })
+  .strict();
+
+const teacherHomeworkEditorResponseSchema = z
+  .object({ homework: teacherHomeworkEditorSchema, ok: z.literal(true) })
+  .strict();
+
+const teacherHomeworkOptionsSchema = z
+  .object({
+    lessons: z
+      .array(
+        z
+          .object({
+            id: z.string().min(1),
+            status: z.enum(["ARCHIVED", "DRAFT", "PUBLISHED"]),
+            studentProfileId: z.string().min(1).nullable(),
+            title: z.string().min(1),
+          })
+          .strict(),
+      )
+      .max(100),
+    students: z
+      .array(
+        z
+          .object({
+            id: z.string().min(1),
+            level: z.string().nullable(),
+            name: z.string().min(1),
+          })
+          .strict(),
+      )
+      .max(100),
+  })
+  .strict();
+
+const teacherHomeworkOptionsResponseSchema = teacherHomeworkOptionsSchema
+  .extend({ ok: z.literal(true) })
+  .strict();
+
+const teacherHomeworkMutationResponseSchema = z
+  .object({
+    homeworkId: z.string().min(1),
+    message: z.string().min(1),
+    ok: z.literal(true),
+    replayed: z.boolean(),
+    updatedAt: z.string().datetime(),
+  })
+  .strict();
+
+const teacherHomeworkDuplicateInputSchema = z
+  .object({
+    operationId: z.string().uuid(),
+    studentProfileIds: z.array(z.string().min(1).max(80)).min(1).max(50),
+  })
+  .strict();
+
+const teacherHomeworkDuplicateResponseSchema = z
+  .object({
+    createdCount: z.number().int().min(0),
+    homeworkIds: z.array(z.string().min(1)).max(50),
+    message: z.string().min(1),
+    ok: z.literal(true),
+    replayed: z.boolean(),
+    skippedCount: z.number().int().min(0),
+  })
+  .strict();
+
+const teacherHomeworkDeleteInputSchema = z
+  .object({
+    expectedUpdatedAt: z.string().datetime(),
+    operationId: z.string().uuid(),
+  })
+  .strict();
+
+const teacherHomeworkDeleteResponseSchema = z
+  .object({
+    homeworkId: z.string().min(1),
+    message: z.string().min(1),
+    ok: z.literal(true),
+    replayed: z.boolean(),
+  })
+  .strict();
+
+export type MobileTeacherHomeworkDeleteInput = z.infer<
+  typeof teacherHomeworkDeleteInputSchema
+>;
+export type MobileTeacherHomeworkDeleteResult = z.infer<
+  typeof teacherHomeworkDeleteResponseSchema
+>;
+export type MobileTeacherHomeworkDuplicateInput = z.infer<
+  typeof teacherHomeworkDuplicateInputSchema
+>;
+export type MobileTeacherHomeworkDuplicateResult = z.infer<
+  typeof teacherHomeworkDuplicateResponseSchema
+>;
+export type MobileTeacherHomeworkEditor = z.infer<
+  typeof teacherHomeworkEditorSchema
+>;
+export type MobileTeacherHomeworkMutationInput = z.infer<
+  typeof teacherHomeworkMutationInputSchema
+>;
+export type MobileTeacherHomeworkMutationResult = z.infer<
+  typeof teacherHomeworkMutationResponseSchema
+>;
+export type MobileTeacherHomeworkOptions = z.infer<
+  typeof teacherHomeworkOptionsSchema
+>;
+export type MobileTeacherHomeworkUpdateInput = z.infer<
+  typeof teacherHomeworkUpdateInputSchema
+>;
+
 const chatThreadSchema = z
   .object({
     id: z.string().min(1),
@@ -1222,6 +1372,158 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         );
       }
 
+      return parsed.data;
+    },
+
+    async getTeacherHomeworkOptions(): Promise<MobileTeacherHomeworkOptions> {
+      const response = await authenticatedRequest("/teacher/homeworks/options", {
+        method: "GET",
+      });
+      const parsed = teacherHomeworkOptionsResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return { lessons: parsed.data.lessons, students: parsed.data.students };
+    },
+
+    async getTeacherHomeworkEditor(
+      homeworkId: string,
+    ): Promise<MobileTeacherHomeworkEditor> {
+      const response = await authenticatedRequest(
+        `/teacher/homeworks/${encodeURIComponent(homeworkId)}/editor`,
+        { method: "GET" },
+      );
+      const parsed = teacherHomeworkEditorResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return parsed.data.homework;
+    },
+
+    async createTeacherHomework(
+      input: MobileTeacherHomeworkMutationInput,
+    ): Promise<MobileTeacherHomeworkMutationResult> {
+      const validated = teacherHomeworkMutationInputSchema.safeParse(input);
+      if (!validated.success) {
+        throw new ApiError(
+          "INVALID_REQUEST",
+          "Revise os dados da tarefa.",
+          400,
+        );
+      }
+      const response = await authenticatedRequest("/teacher/homeworks", {
+        body: JSON.stringify(validated.data),
+        method: "POST",
+      });
+      const parsed = teacherHomeworkMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return parsed.data;
+    },
+
+    async updateTeacherHomework(
+      homeworkId: string,
+      input: MobileTeacherHomeworkUpdateInput,
+    ): Promise<MobileTeacherHomeworkMutationResult> {
+      const validated = teacherHomeworkUpdateInputSchema.safeParse(input);
+      if (!validated.success) {
+        throw new ApiError(
+          "INVALID_REQUEST",
+          "Revise os dados da tarefa.",
+          400,
+        );
+      }
+      const response = await authenticatedRequest(
+        `/teacher/homeworks/${encodeURIComponent(homeworkId)}/editor`,
+        { body: JSON.stringify(validated.data), method: "PUT" },
+      );
+      const parsed = teacherHomeworkMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return parsed.data;
+    },
+
+    async duplicateTeacherHomework(
+      homeworkId: string,
+      input: MobileTeacherHomeworkDuplicateInput,
+    ): Promise<MobileTeacherHomeworkDuplicateResult> {
+      const validated = teacherHomeworkDuplicateInputSchema.safeParse(input);
+      if (!validated.success) {
+        throw new ApiError(
+          "INVALID_REQUEST",
+          "Revise os alunos selecionados.",
+          400,
+        );
+      }
+      const response = await authenticatedRequest(
+        `/teacher/homeworks/${encodeURIComponent(homeworkId)}/duplicate`,
+        { body: JSON.stringify(validated.data), method: "POST" },
+      );
+      const parsed = teacherHomeworkDuplicateResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+      return parsed.data;
+    },
+
+    async deleteTeacherHomework(
+      homeworkId: string,
+      input: MobileTeacherHomeworkDeleteInput,
+    ): Promise<MobileTeacherHomeworkDeleteResult> {
+      const validated = teacherHomeworkDeleteInputSchema.safeParse(input);
+      if (!validated.success) {
+        throw new ApiError(
+          "INVALID_REQUEST",
+          "Solicitação de exclusão inválida.",
+          400,
+        );
+      }
+      const response = await authenticatedRequest(
+        `/teacher/homeworks/${encodeURIComponent(homeworkId)}/editor`,
+        { body: JSON.stringify(validated.data), method: "DELETE" },
+      );
+      const parsed = teacherHomeworkDeleteResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
       return parsed.data;
     },
 

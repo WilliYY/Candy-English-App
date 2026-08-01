@@ -10,7 +10,8 @@ export default function ModuleRoute() {
   const canOpenItem =
     (user?.role === "STUDENT" &&
       (slug === "contracts" || slug === "homeworks" || slug === "lessons")) ||
-    (user?.role === "TEACHER" && slug === "lessons");
+    (user?.role === "TEACHER" &&
+      (slug === "homeworks" || slug === "lessons"));
 
   function openItem(item: { id: string }) {
     if (slug === "contracts") {
@@ -29,6 +30,14 @@ export default function ModuleRoute() {
       return;
     }
 
+    if (user?.role === "TEACHER") {
+      router.push({
+        params: { homeworkId: item.id },
+        pathname: "/teacher/homework/[homeworkId]/edit",
+      });
+      return;
+    }
+
     router.push({
       params: { homeworkId: item.id },
       pathname: "/homework/[homeworkId]",
@@ -40,13 +49,21 @@ export default function ModuleRoute() {
       onBack={() => router.back()}
       onOpenItem={canOpenItem ? openItem : undefined}
       onPrimaryAction={
-        user?.role === "TEACHER" && slug === "lessons"
-          ? () => router.push("/teacher/lesson/new")
+        user?.role === "TEACHER"
+          ? slug === "lessons"
+            ? () => router.push("/teacher/lesson/new")
+            : slug === "homeworks"
+              ? () => router.push("/teacher/homework/new")
+              : undefined
           : undefined
       }
       primaryActionLabel={
-        user?.role === "TEACHER" && slug === "lessons"
-          ? "Criar nova aula"
+        user?.role === "TEACHER"
+          ? slug === "lessons"
+            ? "Criar nova aula"
+            : slug === "homeworks"
+              ? "Criar nova tarefa"
+              : undefined
           : undefined
       }
       slug={slug ?? ""}

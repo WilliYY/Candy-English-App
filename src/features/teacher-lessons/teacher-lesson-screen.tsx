@@ -21,7 +21,9 @@ import { colors } from "@/theme/tokens";
 type TeacherLessonScreenProps = {
   lessonId: string;
   onBack: () => void;
+  onCreateHomework?: () => void;
   onEdit?: () => void;
+  onOpenHomework?: (homeworkId: string) => void;
 };
 
 const statusLabels: Record<MobileTeacherLesson["status"], string> = {
@@ -53,7 +55,9 @@ function isSafeExternalUrl(value: string) {
 export function TeacherLessonScreen({
   lessonId,
   onBack,
+  onCreateHomework,
   onEdit,
+  onOpenHomework,
 }: TeacherLessonScreenProps) {
   const [linkError, setLinkError] = useState("");
   const lessonQuery = useQuery({
@@ -169,6 +173,8 @@ export function TeacherLessonScreen({
             />
             <TeacherLessonSections
               homeworks={lesson.homeworks}
+              onCreateHomework={onCreateHomework}
+              onOpenHomework={onOpenHomework}
               vocabularyItems={lesson.vocabularyItems}
             />
           </>

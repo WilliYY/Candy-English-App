@@ -14,10 +14,22 @@ export default function LessonRoute() {
       <TeacherLessonScreen
         lessonId={lessonId ?? ""}
         onBack={() => router.back()}
+        onCreateHomework={() =>
+          router.push({
+            params: { lessonId: lessonId ?? "" },
+            pathname: "/teacher/homework/new",
+          })
+        }
         onEdit={() =>
           router.push({
             params: { lessonId: lessonId ?? "" },
             pathname: "/teacher/lesson/[lessonId]/edit",
+          })
+        }
+        onOpenHomework={(homeworkId) =>
+          router.push({
+            params: { homeworkId },
+            pathname: "/teacher/homework/[homeworkId]/edit",
           })
         }
       />

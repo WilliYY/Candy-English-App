@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { MobileTeacherLesson } from "@/lib/api/mobile-api-client";
 import { colors, radii, spacing, typeScale } from "@/theme/tokens";
@@ -6,7 +6,10 @@ import { colors, radii, spacing, typeScale } from "@/theme/tokens";
 type TeacherLessonSectionsProps = Pick<
   MobileTeacherLesson,
   "homeworks" | "vocabularyItems"
->;
+> & {
+  onCreateHomework?: () => void;
+  onOpenHomework?: (homeworkId: string) => void;
+};
 
 const statusLabels: Record<
   MobileTeacherLesson["homeworks"][number]["status"],
@@ -29,6 +32,8 @@ function formatDueDate(value: string | null) {
 
 export function TeacherLessonSections({
   homeworks,
+  onCreateHomework,
+  onOpenHomework,
   vocabularyItems,
 }: TeacherLessonSectionsProps) {
   return (
@@ -61,15 +66,35 @@ export function TeacherLessonSections({
       </View>
 
       <View style={styles.section}>
-        <Text accessibilityRole="header" style={styles.heading}>
-          Tarefas vinculadas
-        </Text>
+        <View style={styles.headingRow}>
+          <Text accessibilityRole="header" style={styles.heading}>
+            Tarefas vinculadas
+          </Text>
+          {onCreateHomework ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onCreateHomework}
+              style={styles.action}
+            >
+              <Text style={styles.actionText}>+ Nova tarefa</Text>
+            </Pressable>
+          ) : null}
+        </View>
         {homeworks.length === 0 ? (
           <Text style={styles.empty}>Nenhuma tarefa foi vinculada.</Text>
         ) : (
           <View style={styles.list}>
             {homeworks.map((homework) => (
-              <View key={homework.id} style={styles.card}>
+              <Pressable
+                accessibilityRole={onOpenHomework ? "button" : undefined}
+                disabled={!onOpenHomework}
+                key={homework.id}
+                onPress={() => onOpenHomework?.(homework.id)}
+                style={({ pressed }) => [
+                  styles.card,
+                  pressed ? styles.pressed : null,
+                ]}
+              >
                 <View style={styles.cardHeader}>
                   <Text style={styles.cardTitle}>{homework.title}</Text>
                   <Text style={styles.badge}>{statusLabels[homework.status]}</Text>
@@ -77,7 +102,7 @@ export function TeacherLessonSections({
                 <Text style={styles.detail}>
                   {formatDueDate(homework.dueDate)}
                 </Text>
-              </View>
+              </Pressable>
             ))}
           </View>
         )}
@@ -93,6 +118,27 @@ const styles = StyleSheet.create({
   heading: {
     color: colors.text,
     fontSize: typeScale.lead,
+    fontWeight: "900",
+  },
+  headingRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    justifyContent: "space-between",
+  },
+  action: {
+    alignItems: "center",
+    borderColor: colors.brand,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 44,
+    paddingHorizontal: spacing.md,
+  },
+  actionText: {
+    color: colors.brand,
+    fontSize: 13,
     fontWeight: "900",
   },
   empty: {
@@ -144,5 +190,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xxs,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

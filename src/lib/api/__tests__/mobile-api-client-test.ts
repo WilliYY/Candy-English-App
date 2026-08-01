@@ -492,6 +492,158 @@ describe("MobileApiClient", () => {
     ]);
   });
 
+  it("loads the protected teacher homework editor and creation options", async () => {
+    const memory = createMemoryStore(sessionPayload("access-homework-editor"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-homework-editor",
+      );
+      if (url.endsWith("/teacher/homeworks/options")) {
+        return jsonResponse(200, {
+          lessons: [
+            {
+              id: "lesson-1",
+              status: "DRAFT",
+              studentProfileId: "student-1",
+              title: "Introductions",
+            },
+          ],
+          ok: true,
+          students: [{ id: "student-1", level: "A1", name: "Ana" }],
+        });
+      }
+
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/teacher/homeworks/homework%2F1/editor",
+      );
+      return jsonResponse(200, {
+        homework: {
+          assetFileName: null,
+          dueDate: null,
+          hasSubmissions: false,
+          id: "homework/1",
+          instructions: "Answer in English.",
+          interactiveFieldCount: 0,
+          kind: "TEXT",
+          lessonId: "lesson-1",
+          questions: [
+            {
+              expectedAnswer: "I am fine.",
+              id: "question-1",
+              prompt: "How are you?",
+            },
+          ],
+          status: "DRAFT",
+          studentProfileIds: ["student-1"],
+          title: "Daily conversation",
+          updatedAt: "2026-08-01T15:00:00.000Z",
+        },
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getTeacherHomeworkOptions()).resolves.toMatchObject({
+      lessons: [{ id: "lesson-1" }],
+      students: [{ id: "student-1" }],
+    });
+    await expect(
+      client.getTeacherHomeworkEditor("homework/1"),
+    ).resolves.toMatchObject({ id: "homework/1", kind: "TEXT" });
+  });
+
+  it("creates, updates, duplicates, and deletes teacher homeworks", async () => {
+    const memory = createMemoryStore(sessionPayload("access-homework-write"));
+    const requests: { body: unknown; method: string; url: string }[] = [];
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        body: JSON.parse(String(init?.body)),
+        method: init?.method ?? "GET",
+        url,
+      });
+      if (url.endsWith("/duplicate")) {
+        return jsonResponse(201, {
+          createdCount: 1,
+          homeworkIds: ["homework-copy"],
+          message: "Tarefa duplicada.",
+          ok: true,
+          replayed: false,
+          skippedCount: 0,
+        });
+      }
+      if (init?.method === "DELETE") {
+        return jsonResponse(200, {
+          homeworkId: "homework/1",
+          message: "Tarefa excluída.",
+          ok: true,
+          replayed: false,
+        });
+      }
+      return jsonResponse(url.endsWith("/editor") ? 200 : 201, {
+        homeworkId: "homework/1",
+        message: "Tarefa salva.",
+        ok: true,
+        replayed: false,
+        updatedAt: "2026-08-01T16:00:00.000Z",
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+    const input = {
+      dueDate: null,
+      instructions: "Answer in English.",
+      lessonId: "lesson-1",
+      operationId: "11111111-1111-4111-8111-111111111111",
+      questions: [{ expectedAnswer: null, prompt: "How are you?" }],
+      status: "DRAFT" as const,
+      studentProfileIds: ["student-1"],
+      title: "Daily conversation",
+    };
+
+    await client.createTeacherHomework(input);
+    await client.updateTeacherHomework("homework/1", {
+      ...input,
+      expectedUpdatedAt: "2026-08-01T15:00:00.000Z",
+      operationId: "22222222-2222-4222-8222-222222222222",
+    });
+    await client.duplicateTeacherHomework("homework/1", {
+      operationId: "33333333-3333-4333-8333-333333333333",
+      studentProfileIds: ["student-2"],
+    });
+    await client.deleteTeacherHomework("homework/1", {
+      expectedUpdatedAt: "2026-08-01T15:00:00.000Z",
+      operationId: "44444444-4444-4444-8444-444444444444",
+    });
+
+    expect(requests.map(({ method, url }) => ({ method, url }))).toEqual([
+      {
+        method: "POST",
+        url: "https://candy.example/api/mobile/v1/teacher/homeworks",
+      },
+      {
+        method: "PUT",
+        url: "https://candy.example/api/mobile/v1/teacher/homeworks/homework%2F1/editor",
+      },
+      {
+        method: "POST",
+        url: "https://candy.example/api/mobile/v1/teacher/homeworks/homework%2F1/duplicate",
+      },
+      {
+        method: "DELETE",
+        url: "https://candy.example/api/mobile/v1/teacher/homeworks/homework%2F1/editor",
+      },
+    ]);
+  });
+
   it("loads an authorized student homework detail", async () => {
     const memory = createMemoryStore(sessionPayload("access-homework"));
     const fetcher = jest.fn(async (url: string, init?: RequestInit) => {

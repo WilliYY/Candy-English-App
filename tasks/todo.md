@@ -65,7 +65,7 @@
 - [x] Alunos vinculados.
 - [x] Aulas e materiais.
 - [x] Criação e edição de aula interativa.
-- [ ] Homework: criar, duplicar, editar e excluir.
+- [x] Homework: criar, duplicar, editar e excluir.
 - [ ] Editor nativo de campos interativos.
 - [ ] Fila de submissões e feedback.
 - [x] Mensagens com alunos vinculados.
