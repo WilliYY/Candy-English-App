@@ -1,9 +1,20 @@
 import { z } from "zod";
 
 import {
+  adminFinanceActivityResponseSchema,
+  adminFinanceExpenseMutationResponseSchema,
+  adminFinancePaymentMutationResponseSchema,
+  adminFinancePaymentResponseSchema,
   adminFinanceResponseSchema,
+  type AdminFinanceActivityInput,
+  type AdminFinanceExpenseCreateInput,
+  type AdminFinanceExpenseMutation,
   type AdminFinanceInput,
+  type AdminFinancePaymentMutation,
+  type AdminFinancePaymentUpdateInput,
   type MobileAdminFinance,
+  type MobileAdminFinanceActivity,
+  type MobileAdminFinanceItem,
 } from "@/lib/api/admin-finance-contracts";
 import {
   adminPreRegistrationConversionResponseSchema,
@@ -60,9 +71,17 @@ import {
 } from "@/lib/api/teacher-catty-contracts";
 
 export type {
+  AdminFinanceActivityInput,
+  AdminFinanceExpenseCreateInput,
+  AdminFinanceExpenseMutation,
   AdminFinanceInput,
+  AdminFinancePaymentMutation,
+  AdminFinancePaymentUpdateInput,
   MobileAdminFinance,
+  MobileAdminFinanceActivity,
+  MobileAdminFinanceExpense,
   MobileAdminFinanceItem,
+  MobileAdminFinanceLog,
   MobileAdminFinanceStatus,
   MobileAdminFinanceSummary,
   MobileAdminFinanceUnit,
@@ -1645,6 +1664,91 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         );
       }
       return parsed.data.finance;
+    },
+
+    async getAdminFinanceActivity(
+      input: AdminFinanceActivityInput = {},
+    ): Promise<MobileAdminFinanceActivity> {
+      const search = new URLSearchParams();
+      if (input.month !== undefined) search.set("month", String(input.month));
+      if (input.unit) search.set("unit", input.unit);
+      if (input.year !== undefined) search.set("year", String(input.year));
+      const response = await authenticatedRequest(
+        `/admin/finance/activity${search.size ? `?${search.toString()}` : ""}`,
+        { method: "GET" },
+      );
+      const parsed = adminFinanceActivityResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou gastos e historico invalidos.",
+          502,
+        );
+      }
+      return parsed.data.activity;
+    },
+
+    async getAdminFinancePayment(
+      paymentId: string,
+    ): Promise<MobileAdminFinanceItem> {
+      const response = await authenticatedRequest(
+        `/admin/finance/payments/${encodeURIComponent(paymentId)}`,
+        { method: "GET" },
+      );
+      const parsed = adminFinancePaymentResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou um pagamento invalido.",
+          502,
+        );
+      }
+      return parsed.data.payment;
+    },
+
+    async updateAdminFinancePayment(
+      paymentId: string,
+      input: AdminFinancePaymentUpdateInput,
+    ): Promise<AdminFinancePaymentMutation> {
+      const response = await authenticatedRequest(
+        `/admin/finance/payments/${encodeURIComponent(paymentId)}`,
+        { body: JSON.stringify(input), method: "PATCH" },
+      );
+      const parsed = adminFinancePaymentMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou a alteracao do pagamento.",
+          502,
+        );
+      }
+      return parsed.data;
+    },
+
+    async createAdminFinanceExpense(
+      input: AdminFinanceExpenseCreateInput,
+    ): Promise<AdminFinanceExpenseMutation> {
+      const response = await authenticatedRequest("/admin/finance/expenses", {
+        body: JSON.stringify(input),
+        method: "POST",
+      });
+      const parsed = adminFinanceExpenseMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou o novo gasto.",
+          502,
+        );
+      }
+      return parsed.data;
     },
 
     async getAdminPreRegistrations(input: AdminPreRegistrationsInput = {}) {

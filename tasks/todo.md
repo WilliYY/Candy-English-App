@@ -90,7 +90,7 @@
 - [x] Pré-cadastros completos.
 - [x] Conversão transacional.
 - [x] Financeiro por unidade.
-- [ ] Pagamentos, parcelas, gastos e logs.
+- [x] Pagamentos, parcelas, gastos e logs.
 - [ ] Agenda mensal e fila diária.
 - [ ] Presença, falta, reposição e histórico.
 - [ ] Contratos.

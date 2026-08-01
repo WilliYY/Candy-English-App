@@ -39,8 +39,12 @@ agenda ou financeiro estão incompletos, impede sobrescrita concorrente e não
 guarda nem devolve a senha inicial.
 O Financeiro do ADMIN já possui visão mensal nativa por unidade, resumo de
 previsto, recebido, pendente, atrasado e cadastros incompletos, com busca,
-filtros, paginação e atualização conectada a cada 15 segundos. Essa visão não
-realiza cobranças e não envia CPF ou endereço ao celular.
+filtros, paginação e atualização conectada a cada 15 segundos. O detalhe permite
+ajustar valor, observação e situação do pagamento; a área operacional registra
+gastos e mostra o histórico recente. Escritas exigem confirmação explícita,
+versão atual e operação idempotente, sincronizam com o site e não enviam CPF ou
+endereço ao celular. O módulo continua sendo controle interno, sem cobrança
+online.
 Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme

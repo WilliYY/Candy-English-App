@@ -10,5 +10,16 @@ export default function AdminFinanceRoute() {
   if (!user) return null;
   if (user.role !== "ADMIN") return <Redirect href="/home" />;
 
-  return <AdminFinanceScreen onBack={() => router.back()} />;
+  return (
+    <AdminFinanceScreen
+      onBack={() => router.back()}
+      onOpenActivity={() => router.push("/admin/finance/activity")}
+      onOpenPayment={(paymentId) =>
+        router.push({
+          params: { paymentId },
+          pathname: "/admin/finance/payment/[paymentId]",
+        })
+      }
+    />
+  );
 }

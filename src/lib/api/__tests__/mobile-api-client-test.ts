@@ -2383,4 +2383,156 @@ describe("MobileApiClient", () => {
       "https://candy.example/api/mobile/v1/admin/finance?limit=25&month=8&query=Ana&status=OVERDUE&unit=IVATE&year=2026",
     ]);
   });
+
+  it("loads and updates finance operations with exact safe requests", async () => {
+    const memory = createMemoryStore({
+      ...sessionPayload("access-admin-finance-operations"),
+      user: { ...sessionPayload().user, role: "ADMIN" },
+    });
+    const payment = {
+      amountCents: 35_000,
+      id: "payment/1",
+      installmentNumber: 1,
+      installmentsTotal: 12,
+      isPaid: false,
+      month: 8,
+      name: "Ana Candy",
+      note: null,
+      paidAt: null,
+      paymentDay: 10,
+      paymentMethod: "PIX",
+      status: "OVERDUE",
+      studentId: "student/1",
+      unit: "IVATE",
+      updatedAt: "2026-08-11T12:00:00.000Z",
+      year: 2026,
+    } as const;
+    const expense = {
+      actorName: "Administracao",
+      amountCents: 12_500,
+      createdAt: "2026-08-15T15:00:00.000Z",
+      id: "expense/1",
+      itemName: "Material didatico",
+      note: null,
+      purchasedAt: "2026-08-15",
+      unit: "IVATE",
+      updatedAt: "2026-08-15T15:00:00.000Z",
+    } as const;
+    const requests: { body: unknown; method: string | undefined; url: string }[] = [];
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        method: init?.method,
+        url,
+      });
+      if (url.includes("/activity")) {
+        return jsonResponse(200, {
+          activity: {
+            expenseSummary: { count: 1, totalCents: 12_500 },
+            expenses: [expense],
+            generatedAt: "2026-08-15T15:00:00.000Z",
+            logs: [
+              {
+                action: "MOBILE_EXPENSE",
+                createdAt: "2026-08-15T15:00:00.000Z",
+                description: "Gasto registrado no app.",
+                id: "log/1",
+                studentName: null,
+              },
+            ],
+            logsScope: "GLOBAL_RECENT",
+            period: { month: 8, year: 2026 },
+            unit: "IVATE",
+          },
+          ok: true,
+        });
+      }
+      if (url.endsWith("/expenses")) {
+        return jsonResponse(201, {
+          expense,
+          message: "Gasto registrado com sucesso.",
+          ok: true,
+          replayed: false,
+        });
+      }
+      if (init?.method === "PATCH") {
+        return jsonResponse(200, {
+          message: "Pagamento marcado como pago.",
+          ok: true,
+          payment: {
+            ...payment,
+            isPaid: true,
+            paidAt: "2026-08-15T15:00:00.000Z",
+            status: "PAID",
+            updatedAt: "2026-08-15T15:00:00.000Z",
+          },
+          replayed: false,
+        });
+      }
+      return jsonResponse(200, { ok: true, payment });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+    const updateInput = {
+      amountCents: 35_000,
+      confirmChange: true as const,
+      expectedUpdatedAt: payment.updatedAt,
+      isPaid: true,
+      note: "Pago pelo app",
+      operationId: "11111111-1111-4111-8111-111111111111",
+    };
+    const expenseInput = {
+      actorName: "Administracao",
+      amountCents: 12_500,
+      confirmCreate: true as const,
+      itemName: "Material didatico",
+      month: 8,
+      note: null,
+      operationId: "22222222-2222-4222-8222-222222222222",
+      purchasedAt: "2026-08-15",
+      unit: "IVATE" as const,
+      year: 2026,
+    };
+
+    await expect(
+      client.getAdminFinanceActivity({ month: 8, unit: "IVATE", year: 2026 }),
+    ).resolves.toMatchObject({ expenses: [{ id: "expense/1" }] });
+    await expect(client.getAdminFinancePayment("payment/1")).resolves.toMatchObject({
+      id: "payment/1",
+    });
+    await expect(
+      client.updateAdminFinancePayment("payment/1", updateInput),
+    ).resolves.toMatchObject({ payment: { status: "PAID" }, replayed: false });
+    await expect(client.createAdminFinanceExpense(expenseInput)).resolves.toMatchObject({
+      expense: { id: "expense/1" },
+      replayed: false,
+    });
+
+    expect(requests).toEqual([
+      {
+        body: null,
+        method: "GET",
+        url: "https://candy.example/api/mobile/v1/admin/finance/activity?month=8&unit=IVATE&year=2026",
+      },
+      {
+        body: null,
+        method: "GET",
+        url: "https://candy.example/api/mobile/v1/admin/finance/payments/payment%2F1",
+      },
+      {
+        body: updateInput,
+        method: "PATCH",
+        url: "https://candy.example/api/mobile/v1/admin/finance/payments/payment%2F1",
+      },
+      {
+        body: expenseInput,
+        method: "POST",
+        url: "https://candy.example/api/mobile/v1/admin/finance/expenses",
+      },
+    ]);
+  });
 });

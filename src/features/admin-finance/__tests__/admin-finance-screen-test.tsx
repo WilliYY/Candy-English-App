@@ -76,11 +76,15 @@ const finance: MobileAdminFinance = {
 describe("AdminFinanceScreen", () => {
   it("shows safe unit totals and applies period, unit, status and search filters", async () => {
     const getAdminFinance = jest.fn(async () => finance);
+    const onOpenActivity = jest.fn();
+    const onOpenPayment = jest.fn();
     const view = await render(
       <AdminFinanceScreen
         client={{ getAdminFinance }}
         initialPeriod={{ month: 8, year: 2026 }}
         onBack={jest.fn()}
+        onOpenActivity={onOpenActivity}
+        onOpenPayment={onOpenPayment}
       />,
       { wrapper: createWrapper() },
     );
@@ -89,6 +93,10 @@ describe("AdminFinanceScreen", () => {
     expect(view.getAllByText("Atrasado").length).toBeGreaterThan(0);
     expect(view.getAllByText(/350,00/).length).toBeGreaterThan(0);
     expect(view.getByText("1/12")).toBeTruthy();
+    await fireEvent.press(view.getByLabelText("Abrir gastos e historico"));
+    await fireEvent.press(view.getByLabelText("Abrir pagamento de Ana Candy"));
+    expect(onOpenActivity).toHaveBeenCalledTimes(1);
+    expect(onOpenPayment).toHaveBeenCalledWith("payment-1");
     expect(getAdminFinance).toHaveBeenCalledWith({
       cursor: undefined,
       limit: 25,
@@ -118,5 +126,6 @@ describe("AdminFinanceScreen", () => {
         }),
       );
     });
+    view.unmount();
   });
 });

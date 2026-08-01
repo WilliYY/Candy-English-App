@@ -24,6 +24,8 @@ type Props = {
   client?: Client;
   initialPeriod?: { month: number; year: number };
   onBack: () => void;
+  onOpenActivity: () => void;
+  onOpenPayment: (paymentId: string) => void;
 };
 
 const months = [
@@ -88,13 +90,24 @@ function SummaryMetric({
   );
 }
 
-function FinanceRow({ item }: { item: MobileAdminFinanceItem }) {
+function FinanceRow({
+  item,
+  onOpen,
+}: {
+  item: MobileAdminFinanceItem;
+  onOpen: () => void;
+}) {
   const installment =
     item.installmentNumber && item.installmentsTotal
       ? `${item.installmentNumber}/${item.installmentsTotal}`
       : "Sem parcelas";
   return (
-    <View style={styles.card}>
+    <Pressable
+      accessibilityLabel={`Abrir pagamento de ${item.name}`}
+      accessibilityRole="button"
+      onPress={onOpen}
+      style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}
+    >
       <View style={styles.cardTop}>
         <View style={styles.cardCopy}>
           <Text style={styles.cardName}>{item.name}</Text>
@@ -115,11 +128,17 @@ function FinanceRow({ item }: { item: MobileAdminFinanceItem }) {
       <Text style={styles.warning}>{installment}</Text>
       <Text style={styles.warning}>{item.paymentMethod}</Text>
       {item.note ? <Text style={styles.warning}>{item.note}</Text> : null}
-    </View>
+    </Pressable>
   );
 }
 
-export function AdminFinanceScreen({ client, initialPeriod, onBack }: Props) {
+export function AdminFinanceScreen({
+  client,
+  initialPeriod,
+  onBack,
+  onOpenActivity,
+  onOpenPayment,
+}: Props) {
   const api = client ?? getMobileApi();
   const now = new Date();
   const [month, setMonth] = useState(initialPeriod?.month ?? now.getMonth() + 1);
@@ -168,6 +187,14 @@ export function AdminFinanceScreen({ client, initialPeriod, onBack }: Props) {
             style={styles.backButton}
           >
             <Text style={styles.backText}>Voltar</Text>
+          </Pressable>
+          <Pressable
+            accessibilityLabel="Abrir gastos e historico"
+            accessibilityRole="button"
+            onPress={onOpenActivity}
+            style={styles.topAction}
+          >
+            <Text style={styles.topActionText}>Gastos e historico</Text>
           </Pressable>
         </View>
 
@@ -320,7 +347,11 @@ export function AdminFinanceScreen({ client, initialPeriod, onBack }: Props) {
               </View>
             ) : null}
             {items.map((item) => (
-              <FinanceRow item={item} key={item.id} />
+              <FinanceRow
+                item={item}
+                key={item.id}
+                onOpen={() => onOpenPayment(item.id)}
+              />
             ))}
             {finance.hasNextPage ? (
               <Pressable
