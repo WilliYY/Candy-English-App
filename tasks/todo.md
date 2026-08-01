@@ -91,7 +91,7 @@
 - [x] Conversão transacional.
 - [x] Financeiro por unidade.
 - [x] Pagamentos, parcelas, gastos e logs.
-- [ ] Agenda mensal e fila diária.
+- [x] Agenda mensal e fila diária.
 - [ ] Presença, falta, reposição e histórico.
 - [ ] Contratos.
 - [ ] Manutenção e opções operacionais seguras.

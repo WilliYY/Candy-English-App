@@ -1,6 +1,11 @@
 import { z } from "zod";
 
 import {
+  adminAgendaResponseSchema,
+  type AdminAgendaInput,
+  type MobileAdminAgenda,
+} from "@/lib/api/admin-agenda-contracts";
+import {
   adminFinanceActivityResponseSchema,
   adminFinanceExpenseMutationResponseSchema,
   adminFinancePaymentMutationResponseSchema,
@@ -70,6 +75,14 @@ import {
   type TeacherCattyLearningInput,
 } from "@/lib/api/teacher-catty-contracts";
 
+export type {
+  AdminAgendaInput,
+  MobileAdminAgenda,
+  MobileAdminAgendaDay,
+  MobileAdminAgendaLesson,
+  MobileAdminAgendaStatus,
+  MobileAdminAgendaUnit,
+} from "@/lib/api/admin-agenda-contracts";
 export type {
   AdminFinanceActivityInput,
   AdminFinanceExpenseCreateInput,
@@ -1664,6 +1677,30 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         );
       }
       return parsed.data.finance;
+    },
+
+    async getAdminAgenda(
+      input: AdminAgendaInput = {},
+    ): Promise<MobileAdminAgenda> {
+      const search = new URLSearchParams();
+      if (input.date) search.set("date", input.date);
+      if (input.month !== undefined) search.set("month", String(input.month));
+      if (input.query) search.set("query", input.query);
+      if (input.unit) search.set("unit", input.unit);
+      if (input.year !== undefined) search.set("year", String(input.year));
+      const response = await authenticatedRequest(
+        `/admin/agenda${search.size ? `?${search.toString()}` : ""}`,
+        { method: "GET" },
+      );
+      const parsed = adminAgendaResponseSchema.safeParse(await response.json());
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma agenda administrativa invalida.",
+          502,
+        );
+      }
+      return parsed.data.agenda;
     },
 
     async getAdminFinanceActivity(

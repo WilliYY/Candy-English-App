@@ -30,6 +30,11 @@ export default function HomeRoute() {
           return;
         }
 
+        if (user.role === "ADMIN" && slug === "agenda") {
+          router.push("/admin/agenda");
+          return;
+        }
+
         if (slug === "live-class") {
           router.push("/live-class");
           return;

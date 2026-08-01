@@ -45,6 +45,10 @@ gastos e mostra o histórico recente. Escritas exigem confirmação explícita,
 versão atual e operação idempotente, sincronizam com o site e não enviam CPF ou
 endereço ao celular. O módulo continua sendo controle interno, sem cobrança
 online.
+O ADMIN também possui agenda mensal por unidade e fila diária pesquisável,
+com contagens de aulas, presenças, faltas e reposições, atualização a cada 15
+segundos e cartões operacionais com horário, telefone e observações internas.
+Essa agenda continua separada das contas e aulas pedagógicas do AVA.
 Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme

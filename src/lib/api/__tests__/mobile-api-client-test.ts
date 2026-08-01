@@ -2535,4 +2535,80 @@ describe("MobileApiClient", () => {
       },
     ]);
   });
+
+  it("loads the administrative monthly agenda and selected daily queue", async () => {
+    const memory = createMemoryStore({
+      ...sessionPayload("access-admin-agenda"),
+      user: { ...sessionPayload().user, role: "ADMIN" },
+    });
+    const urls: string[] = [];
+    const fetcher = jest.fn(async (url: string) => {
+      urls.push(url);
+      return jsonResponse(200, {
+        agenda: {
+          dailyLessons: [
+            {
+              date: "2026-08-10",
+              id: "lesson/1",
+              isMakeup: false,
+              lessonNote: null,
+              status: "SCHEDULED",
+              studentId: "student/1",
+              studentName: "Ana Candy",
+              studentNote: "Responsavel avisado",
+              studentPhone: "44999999999",
+              studentUnit: "IVATE",
+              time: "14:00",
+              updatedAt: "2026-08-01T12:00:00.000Z",
+            },
+          ],
+          days: [
+            {
+              attendedCount: 0,
+              count: 1,
+              date: "2026-08-10",
+              makeupCount: 0,
+              missedCount: 0,
+              scheduledCount: 1,
+            },
+          ],
+          generatedAt: "2026-08-15T15:00:00.000Z",
+          period: { month: 8, year: 2026 },
+          selectedDate: "2026-08-10",
+          summary: {
+            attendedCount: 0,
+            count: 1,
+            makeupCount: 0,
+            missedCount: 0,
+            scheduledCount: 1,
+          },
+          unit: "IVATE",
+        },
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(
+      client.getAdminAgenda({
+        date: "2026-08-10",
+        month: 8,
+        query: "Ana",
+        unit: "IVATE",
+        year: 2026,
+      }),
+    ).resolves.toMatchObject({
+      dailyLessons: [{ id: "lesson/1", studentName: "Ana Candy" }],
+      selectedDate: "2026-08-10",
+      summary: { count: 1 },
+    });
+    expect(urls).toEqual([
+      "https://candy.example/api/mobile/v1/admin/agenda?date=2026-08-10&month=8&query=Ana&unit=IVATE&year=2026",
+    ]);
+  });
 });
