@@ -242,6 +242,100 @@ const teacherLessonResponseSchema = z
 
 export type MobileTeacherLesson = z.infer<typeof teacherLessonSchema>;
 
+const teacherLessonMaterialInputSchema = z
+  .object({
+    content: z.string().max(4000).nullable(),
+    title: z.string().min(1).max(160),
+    type: z.enum(["LINK", "TEXT"]),
+    url: z.string().url().max(500).nullable(),
+  })
+  .strict();
+
+const teacherLessonVocabularyInputSchema = z
+  .object({
+    example: z.string().max(500).nullable(),
+    term: z.string().min(1).max(120),
+    translation: z.string().min(1).max(160),
+  })
+  .strict();
+
+const teacherLessonMutationInputSchema = z
+  .object({
+    description: z.string().max(1200).nullable(),
+    materials: z.array(teacherLessonMaterialInputSchema).max(25),
+    operationId: z.string().uuid(),
+    scheduledAt: z.string().datetime().nullable(),
+    status: z.enum(["ARCHIVED", "DRAFT", "PUBLISHED"]),
+    studentProfileId: z.string().min(1).max(80).nullable(),
+    title: z.string().min(3).max(160),
+    vocabularyItems: z
+      .array(teacherLessonVocabularyInputSchema)
+      .max(100),
+  })
+  .strict();
+
+const teacherLessonUpdateInputSchema = teacherLessonMutationInputSchema
+  .extend({ expectedUpdatedAt: z.string().datetime() })
+  .strict();
+
+const teacherLessonEditorSchema = teacherLessonMutationInputSchema
+  .omit({ operationId: true })
+  .extend({
+    id: z.string().min(1),
+    updatedAt: z.string().datetime(),
+  })
+  .strict();
+
+const teacherLessonEditorResponseSchema = z
+  .object({ lesson: teacherLessonEditorSchema, ok: z.literal(true) })
+  .strict();
+
+const teacherLessonOptionsSchema = z
+  .object({
+    students: z
+      .array(
+        z
+          .object({
+            id: z.string().min(1),
+            level: z.string().nullable(),
+            name: z.string().min(1),
+          })
+          .strict(),
+      )
+      .max(100),
+  })
+  .strict();
+
+const teacherLessonOptionsResponseSchema = teacherLessonOptionsSchema
+  .extend({ ok: z.literal(true) })
+  .strict();
+
+const teacherLessonMutationResponseSchema = z
+  .object({
+    lessonId: z.string().min(1),
+    message: z.string().min(1),
+    ok: z.literal(true),
+    replayed: z.boolean(),
+    updatedAt: z.string().datetime(),
+  })
+  .strict();
+
+export type MobileTeacherLessonEditor = z.infer<
+  typeof teacherLessonEditorSchema
+>;
+export type MobileTeacherLessonMutationInput = z.infer<
+  typeof teacherLessonMutationInputSchema
+>;
+export type MobileTeacherLessonMutationResult = z.infer<
+  typeof teacherLessonMutationResponseSchema
+>;
+export type MobileTeacherLessonOptions = z.infer<
+  typeof teacherLessonOptionsSchema
+>;
+export type MobileTeacherLessonUpdateInput = z.infer<
+  typeof teacherLessonUpdateInputSchema
+>;
+
 const chatThreadSchema = z
   .object({
     id: z.string().min(1),
@@ -1020,6 +1114,115 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       return parsed.data.lesson;
+    },
+
+    async getTeacherLessonOptions(): Promise<MobileTeacherLessonOptions> {
+      const response = await authenticatedRequest("/teacher/lessons/options", {
+        method: "GET",
+      });
+      const parsed = teacherLessonOptionsResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return { students: parsed.data.students };
+    },
+
+    async getTeacherLessonEditor(
+      lessonId: string,
+    ): Promise<MobileTeacherLessonEditor> {
+      const response = await authenticatedRequest(
+        `/teacher/lessons/${encodeURIComponent(lessonId)}/editor`,
+        { method: "GET" },
+      );
+      const parsed = teacherLessonEditorResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data.lesson;
+    },
+
+    async createTeacherLesson(
+      input: MobileTeacherLessonMutationInput,
+    ): Promise<MobileTeacherLessonMutationResult> {
+      const validated = teacherLessonMutationInputSchema.safeParse(input);
+
+      if (!validated.success) {
+        throw new ApiError(
+          "INVALID_REQUEST",
+          "Revise os dados da aula.",
+          400,
+        );
+      }
+
+      const response = await authenticatedRequest("/teacher/lessons", {
+        body: JSON.stringify(validated.data),
+        method: "POST",
+      });
+      const parsed = teacherLessonMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data;
+    },
+
+    async updateTeacherLesson(
+      lessonId: string,
+      input: MobileTeacherLessonUpdateInput,
+    ): Promise<MobileTeacherLessonMutationResult> {
+      const validated = teacherLessonUpdateInputSchema.safeParse(input);
+
+      if (!validated.success) {
+        throw new ApiError(
+          "INVALID_REQUEST",
+          "Revise os dados da aula.",
+          400,
+        );
+      }
+
+      const response = await authenticatedRequest(
+        `/teacher/lessons/${encodeURIComponent(lessonId)}/editor`,
+        {
+          body: JSON.stringify(validated.data),
+          method: "PUT",
+        },
+      );
+      const parsed = teacherLessonMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma resposta inválida.",
+          502,
+        );
+      }
+
+      return parsed.data;
     },
 
     async getHomework(homeworkId: string): Promise<MobileHomework> {

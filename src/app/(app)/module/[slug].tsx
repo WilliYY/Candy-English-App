@@ -39,6 +39,16 @@ export default function ModuleRoute() {
     <ModuleScreen
       onBack={() => router.back()}
       onOpenItem={canOpenItem ? openItem : undefined}
+      onPrimaryAction={
+        user?.role === "TEACHER" && slug === "lessons"
+          ? () => router.push("/teacher/lesson/new")
+          : undefined
+      }
+      primaryActionLabel={
+        user?.role === "TEACHER" && slug === "lessons"
+          ? "Criar nova aula"
+          : undefined
+      }
       slug={slug ?? ""}
     />
   );

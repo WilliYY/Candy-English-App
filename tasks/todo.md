@@ -64,7 +64,7 @@
 - [x] Resumo da teacher.
 - [x] Alunos vinculados.
 - [x] Aulas e materiais.
-- [ ] Criação e edição de aula interativa.
+- [x] Criação e edição de aula interativa.
 - [ ] Homework: criar, duplicar, editar e excluir.
 - [ ] Editor nativo de campos interativos.
 - [ ] Fila de submissões e feedback.

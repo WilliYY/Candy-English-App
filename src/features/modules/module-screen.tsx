@@ -16,6 +16,8 @@ import { colors, radii, spacing, typeScale } from "@/theme/tokens";
 type ModuleScreenProps = {
   onBack: () => void;
   onOpenItem?: (item: MobileModuleData["items"][number]) => void;
+  onPrimaryAction?: () => void;
+  primaryActionLabel?: string;
   slug: string;
 };
 
@@ -44,6 +46,8 @@ function formatAmount(value?: number) {
 export function ModuleScreen({
   onBack,
   onOpenItem,
+  onPrimaryAction,
+  primaryActionLabel,
   slug,
 }: ModuleScreenProps) {
   const moduleQuery = useQuery({
@@ -82,6 +86,19 @@ export function ModuleScreen({
         <Text style={styles.description}>
           Informações autorizadas do mesmo sistema usado no site.
         </Text>
+
+        {onPrimaryAction && primaryActionLabel ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onPrimaryAction}
+            style={({ pressed }) => [
+              styles.primaryAction,
+              pressed ? styles.itemPressed : null,
+            ]}
+          >
+            <Text style={styles.primaryActionText}>{primaryActionLabel}</Text>
+          </Pressable>
+        ) : null}
 
         {moduleQuery.isError ? (
           <Pressable
@@ -198,6 +215,21 @@ const styles = StyleSheet.create({
     fontSize: typeScale.body,
     lineHeight: 24,
     marginTop: spacing.sm,
+  },
+  primaryAction: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: colors.brand,
+    borderRadius: radii.sm,
+    justifyContent: "center",
+    marginTop: spacing.lg,
+    minHeight: 44,
+    paddingHorizontal: spacing.md,
+  },
+  primaryActionText: {
+    color: colors.surface,
+    fontSize: 14,
+    fontWeight: "900",
   },
   error: {
     backgroundColor: colors.coral,

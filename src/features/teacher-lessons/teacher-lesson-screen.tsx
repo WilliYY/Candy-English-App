@@ -21,6 +21,7 @@ import { colors } from "@/theme/tokens";
 type TeacherLessonScreenProps = {
   lessonId: string;
   onBack: () => void;
+  onEdit?: () => void;
 };
 
 const statusLabels: Record<MobileTeacherLesson["status"], string> = {
@@ -52,6 +53,7 @@ function isSafeExternalUrl(value: string) {
 export function TeacherLessonScreen({
   lessonId,
   onBack,
+  onEdit,
 }: TeacherLessonScreenProps) {
   const [linkError, setLinkError] = useState("");
   const lessonQuery = useQuery({
@@ -138,6 +140,18 @@ export function TeacherLessonScreen({
             <Text style={styles.audience}>
               {lesson.studentName ? `Aluno: ${lesson.studentName}` : "Turma geral"}
             </Text>
+            {onEdit ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={onEdit}
+                style={({ pressed }) => [
+                  styles.editButton,
+                  pressed ? styles.pressed : null,
+                ]}
+              >
+                <Text style={styles.editButtonText}>Editar aula</Text>
+              </Pressable>
+            ) : null}
             {lesson.description ? (
               <Text selectable style={styles.description}>
                 {lesson.description}

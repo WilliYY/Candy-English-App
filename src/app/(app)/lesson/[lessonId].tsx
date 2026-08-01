@@ -14,6 +14,12 @@ export default function LessonRoute() {
       <TeacherLessonScreen
         lessonId={lessonId ?? ""}
         onBack={() => router.back()}
+        onEdit={() =>
+          router.push({
+            params: { lessonId: lessonId ?? "" },
+            pathname: "/teacher/lesson/[lessonId]/edit",
+          })
+        }
       />
     );
   }

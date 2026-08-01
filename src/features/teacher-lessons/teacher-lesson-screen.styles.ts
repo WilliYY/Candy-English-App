@@ -108,6 +108,21 @@ export const styles = StyleSheet.create({
     lineHeight: 21,
     marginTop: spacing.xs,
   },
+  editButton: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: colors.brand,
+    borderRadius: radii.sm,
+    justifyContent: "center",
+    marginTop: spacing.md,
+    minHeight: 44,
+    paddingHorizontal: spacing.md,
+  },
+  editButtonText: {
+    color: colors.surface,
+    fontSize: 14,
+    fontWeight: "900",
+  },
   description: {
     color: colors.textMuted,
     fontSize: typeScale.body,
@@ -119,5 +134,8 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "800",
     marginTop: spacing.md,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

@@ -360,6 +360,138 @@ describe("MobileApiClient", () => {
     expect(lesson.homeworks[0]?.status).toBe("DRAFT");
   });
 
+  it("loads the teacher lesson editor and linked student options", async () => {
+    const memory = createMemoryStore(sessionPayload("access-lesson-editor"));
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer access-lesson-editor",
+      );
+
+      if (url.endsWith("/teacher/lessons/options")) {
+        return jsonResponse(200, {
+          ok: true,
+          students: [
+            { id: "student-1", level: "A2", name: "Candy Student" },
+          ],
+        });
+      }
+
+      expect(url).toBe(
+        "https://candy.example/api/mobile/v1/teacher/lessons/lesson%2F1/editor",
+      );
+      return jsonResponse(200, {
+        lesson: {
+          description: "Practice introductions.",
+          id: "lesson/1",
+          materials: [
+            {
+              content: null,
+              title: "Pronunciation guide",
+              type: "LINK",
+              url: "https://example.com/guide",
+            },
+          ],
+          scheduledAt: "2026-08-01T12:00:00.000Z",
+          status: "DRAFT",
+          studentProfileId: "student-1",
+          title: "Introductions",
+          updatedAt: "2026-08-01T13:00:00.000Z",
+          vocabularyItems: [
+            {
+              example: "Nice to meet you.",
+              term: "meet",
+              translation: "conhecer",
+            },
+          ],
+        },
+        ok: true,
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+
+    await expect(client.getTeacherLessonOptions()).resolves.toEqual({
+      students: [
+        { id: "student-1", level: "A2", name: "Candy Student" },
+      ],
+    });
+    await expect(client.getTeacherLessonEditor("lesson/1")).resolves.toMatchObject(
+      {
+        id: "lesson/1",
+        studentProfileId: "student-1",
+        updatedAt: "2026-08-01T13:00:00.000Z",
+      },
+    );
+  });
+
+  it("creates and updates a teacher lesson with stable operation data", async () => {
+    const memory = createMemoryStore(sessionPayload("access-lesson-write"));
+    const requests: { body: unknown; method: string; url: string }[] = [];
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        body: JSON.parse(String(init?.body)),
+        method: init?.method ?? "GET",
+        url,
+      });
+      return jsonResponse(url.endsWith("/editor") ? 200 : 201, {
+        lessonId: "lesson-1",
+        message: "Aula salva.",
+        ok: true,
+        replayed: false,
+        updatedAt: "2026-08-01T14:00:00.000Z",
+      });
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+    const input = {
+      description: null,
+      materials: [],
+      operationId: "11111111-1111-4111-8111-111111111111",
+      scheduledAt: null,
+      status: "DRAFT" as const,
+      studentProfileId: null,
+      title: "General lesson",
+      vocabularyItems: [],
+    };
+
+    await expect(client.createTeacherLesson(input)).resolves.toMatchObject({
+      lessonId: "lesson-1",
+      replayed: false,
+    });
+    await expect(
+      client.updateTeacherLesson("lesson/1", {
+        ...input,
+        expectedUpdatedAt: "2026-08-01T13:00:00.000Z",
+        operationId: "22222222-2222-4222-8222-222222222222",
+      }),
+    ).resolves.toMatchObject({ updatedAt: "2026-08-01T14:00:00.000Z" });
+
+    expect(requests).toEqual([
+      {
+        body: input,
+        method: "POST",
+        url: "https://candy.example/api/mobile/v1/teacher/lessons",
+      },
+      {
+        body: {
+          ...input,
+          expectedUpdatedAt: "2026-08-01T13:00:00.000Z",
+          operationId: "22222222-2222-4222-8222-222222222222",
+        },
+        method: "PUT",
+        url: "https://candy.example/api/mobile/v1/teacher/lessons/lesson%2F1/editor",
+      },
+    ]);
+  });
+
   it("loads an authorized student homework detail", async () => {
     const memory = createMemoryStore(sessionPayload("access-homework"));
     const fetcher = jest.fn(async (url: string, init?: RequestInit) => {

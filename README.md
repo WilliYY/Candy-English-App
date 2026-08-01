@@ -13,8 +13,9 @@ mensagens, aulas com materiais/vocabulário, contratos PDF protegidos, perfil
 compartilhado com avatar otimizado, Candy XP com ranking, materiais, rascunho e
 entrega de atividades, Catty autenticada com histórico compartilhado e aula ao
 vivo com manutenção sincronizada, central de avisos do aluno para aulas,
-detalhes protegidos do planejamento de aulas da teacher, tarefas, correções e
-conquistas, além de homeworks `TEXT`/interativas com desenho, listening e envio,
+detalhes, criação e edição protegida do planejamento de aulas da teacher,
+incluindo conflito entre site/aparelho, tarefas, correções e conquistas, além de
+homeworks `TEXT`/interativas com desenho, listening e envio,
 já estão implementados. Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme

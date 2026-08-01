@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import type { PropsWithChildren } from "react";
 
 import { TeacherLessonScreen } from "@/features/teacher-lessons/teacher-lesson-screen";
@@ -67,9 +67,14 @@ describe("TeacherLessonScreen", () => {
     jest.mocked(getMobileApi).mockReturnValue({
       getTeacherLesson,
     } as unknown as ReturnType<typeof getMobileApi>);
+    const onEdit = jest.fn();
     const { queryClient, Wrapper } = createWrapper();
     const view = await render(
-      <TeacherLessonScreen lessonId="lesson-1" onBack={jest.fn()} />,
+      <TeacherLessonScreen
+        lessonId="lesson-1"
+        onBack={jest.fn()}
+        onEdit={onEdit}
+      />,
       { wrapper: Wrapper },
     );
 
@@ -79,6 +84,10 @@ describe("TeacherLessonScreen", () => {
     expect(view.getByText("Practice guide")).toBeTruthy();
     expect(view.getByText("Speaking prompts")).toBeTruthy();
     expect(view.getByText("meet")).toBeTruthy();
+    await fireEvent.press(
+      view.getByRole("button", { name: "Editar aula" }),
+    );
+    expect(onEdit).toHaveBeenCalledTimes(1);
 
     await view.unmount();
     queryClient.clear();
