@@ -96,6 +96,10 @@
 - [x] Contratos.
 - [x] Manutenção e opções operacionais seguras.
 - [ ] Candy XP administrativo.
+  - [x] Indicadores, ranking privado, busca, filtros e paginação.
+  - [x] Edição confirmada de atividade e liberação por aluno/todos.
+  - [x] Correção com feedback, devolução e concessão idempotente de XP.
+  - [ ] Criação, exclusão e substituição segura do arquivo-base no app.
 - [ ] Administração permitida da Catty.
 - [ ] Supervisão das áreas teacher/student.
 - [ ] Confirmações de ações destrutivas.

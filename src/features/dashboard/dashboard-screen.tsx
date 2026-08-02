@@ -64,6 +64,7 @@ const roleContent: Record<
       { slug: "agenda", label: "Agenda", description: "Aulas, presença e reposições" },
       { slug: "contracts", label: "Contratos", description: "Envio, consulta e PDFs protegidos" },
       { slug: "operations", label: "Manutenção", description: "Status seguro e acesso dos alunos" },
+      { slug: "candy-xp-admin", label: "Candy XP", description: "Atividades, liberações, correções e ranking" },
       { slug: "ava", label: "AVA", description: "Supervisão pedagógica completa" },
       { slug: "reports", label: "Relatórios", description: "Indicadores operacionais" },
     ],

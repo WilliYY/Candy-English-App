@@ -2920,4 +2920,171 @@ describe("MobileApiClient", () => {
     ]);
     expect(requests.every((request) => !request.url.includes("access-admin-operations"))).toBe(true);
   });
+
+  it("lists, edits and reviews administrative Candy XP without leaking the token", async () => {
+    const memory = createMemoryStore({
+      ...sessionPayload("access-admin-candy-xp"),
+      user: { ...sessionPayload().user, role: "ADMIN" },
+    });
+    const activity = {
+      asset: null,
+      category: "Conversation",
+      createdAt: "2026-08-02T10:00:00.000Z",
+      description: "Practice greetings.",
+      id: "activity/1",
+      level: "A1",
+      publishedAt: "2026-08-02T10:00:00.000Z",
+      release: { mode: "ALL", students: [] },
+      status: "PUBLISHED",
+      submissionCount: 1,
+      title: "Greetings",
+      updatedAt: "2026-08-02T11:00:00.000Z",
+      xpReward: 50,
+    };
+    const submission = {
+      answers: [{ questionId: "question/1", value: "Hello!" }],
+      autoScorePercent: 100,
+      awardedXp: null,
+      feedback: null,
+      id: "submission/1",
+      reviewedAt: null,
+      reviewedByName: null,
+      status: "SUBMITTED",
+      studentName: "Ana Candy",
+      submittedAt: "2026-08-02T10:30:00.000Z",
+      updatedAt: "2026-08-02T10:30:00.000Z",
+    };
+    const responses = [
+      {
+        catalog: {
+          activities: [activity],
+          generatedAt: "2026-08-02T12:00:00.000Z",
+          hasMore: false,
+          nextCursor: null,
+          ranking: {
+            generatedAt: "2026-08-02T12:00:00.000Z",
+            topEntries: [
+              { level: 3, name: "Ana Candy", position: 1, role: "STUDENT", totalXp: 500 },
+            ],
+            totalRanked: 1,
+          },
+          summary: { archived: 0, draft: 0, pendingReviews: 1, published: 1, total: 1 },
+        },
+        ok: true,
+      },
+      {
+        detail: {
+          activity: {
+            ...activity,
+            interactiveFields: [],
+            questions: [
+              {
+                correctAnswer: "Hello!",
+                id: "question/1",
+                options: [],
+                prompt: "Say hello",
+                required: true,
+                sortOrder: 0,
+                type: "SHORT_TEXT",
+              },
+            ],
+            submissions: [submission],
+          },
+          students: [{ id: "student/1", name: "Ana Candy" }],
+        },
+        ok: true,
+      },
+      {
+        message: "Atividade Candy XP atualizada.",
+        ok: true,
+        result: { activity: { ...activity, title: "Greetings updated" }, replayed: false },
+      },
+      {
+        message: "Correcao Candy XP confirmada.",
+        ok: true,
+        result: {
+          replayed: false,
+          submission: {
+            ...submission,
+            awardedXp: 50,
+            reviewedAt: "2026-08-02T12:00:00.000Z",
+            reviewedByName: "Admin Candy",
+            status: "REVIEWED",
+          },
+        },
+      },
+    ];
+    const requests: { authorization: string | null; body: unknown; method: string; url: string }[] = [];
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        authorization: new Headers(init?.headers).get("authorization"),
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        method: init?.method ?? "GET",
+        url,
+      });
+      return jsonResponse(200, responses.shift());
+    });
+    const client = createMobileApiClient({
+      baseUrl: "https://candy.example",
+      fetcher,
+      getDeviceIdentity: async () => device,
+      sessionStore: memory.store,
+    });
+    const update = {
+      category: "Conversation",
+      confirmChange: true as const,
+      description: "Practice greetings.",
+      expectedUpdatedAt: activity.updatedAt,
+      level: "A1",
+      operationId: "77777777-7777-4777-8777-777777777777",
+      releaseMode: "ALL" as const,
+      status: "PUBLISHED" as const,
+      studentProfileId: null,
+      title: "Greetings updated",
+      xpReward: 50,
+    };
+    const review = {
+      confirmReview: true as const,
+      expectedUpdatedAt: submission.updatedAt,
+      feedback: "Great work!",
+      operationId: "88888888-8888-4888-8888-888888888888",
+      outcome: "APPROVE" as const,
+    };
+
+    await expect(
+      client.getAdminCandyXp({ limit: 20, query: "Greetings", status: "PUBLISHED" }),
+    ).resolves.toMatchObject({ activities: [{ id: "activity/1" }] });
+    await expect(client.getAdminCandyXpActivity("activity/1")).resolves.toMatchObject({
+      activity: { submissions: [{ id: "submission/1" }] },
+    });
+    await expect(
+      client.updateAdminCandyXpActivity("activity/1", update),
+    ).resolves.toMatchObject({ message: "Atividade Candy XP atualizada.", replayed: false });
+    await expect(
+      client.reviewAdminCandyXpSubmission("submission/1", review),
+    ).resolves.toMatchObject({ submission: { awardedXp: 50, status: "REVIEWED" } });
+
+    expect(requests.map(({ method, url }) => ({ method, url }))).toEqual([
+      {
+        method: "GET",
+        url: "https://candy.example/api/mobile/v1/admin/candy-xp?limit=20&query=Greetings&status=PUBLISHED",
+      },
+      {
+        method: "GET",
+        url: "https://candy.example/api/mobile/v1/admin/candy-xp/activity%2F1",
+      },
+      {
+        method: "PATCH",
+        url: "https://candy.example/api/mobile/v1/admin/candy-xp/activity%2F1",
+      },
+      {
+        method: "POST",
+        url: "https://candy.example/api/mobile/v1/admin/candy-xp/submissions/submission%2F1/review",
+      },
+    ]);
+    expect(requests[2]?.body).toEqual(update);
+    expect(requests[3]?.body).toEqual(review);
+    expect(requests.every((request) => request.authorization === "Bearer access-admin-candy-xp")).toBe(true);
+    expect(requests.every((request) => !request.url.includes("access-admin-candy-xp"))).toBe(true);
+  });
 });

@@ -96,8 +96,8 @@ describe("TeacherCattyScreen", () => {
     );
 
     expect(await view.findByText("Catty Learning")).toBeTruthy();
-    expect(view.getByText("Aguardando admin")).toBeTruthy();
-    expect(view.getByText("12")).toBeTruthy();
+    expect(await view.findByText("Aguardando admin")).toBeTruthy();
+    expect(await view.findByText("12")).toBeTruthy();
     expect(view.queryByText("ana@candy.example")).toBeNull();
 
     await fireEvent.changeText(
@@ -133,5 +133,6 @@ describe("TeacherCattyScreen", () => {
         }),
       );
     });
+    await view.unmount();
   });
 });

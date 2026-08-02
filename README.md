@@ -63,6 +63,11 @@ web, atualiza a cada 15 segundos e só muda depois de confirmação. Conflitos c
 outro aparelho são detectados e retries usam a mesma operação idempotente. O
 celular recebe apenas o uso total do armazenamento; APIs, senhas, caminhos de
 arquivos e detalhes internos continuam exclusivos do site.
+O Candy XP administrativo traz indicadores, busca, filtros, paginação, ranking
+privado, edição de atividades e liberações, além de aprovação com XP ou devolução
+com feedback. Mudanças feitas no app usam o mesmo banco e ledger do site, exigem
+confirmação, versão atual e operação idempotente. Gabaritos ficam restritos ao
+detalhe ADMIN e dados pessoais ou caminhos privados não chegam ao aparelho.
 Arquivos protegidos usam download autenticado, cache
 temporário validado e limpeza no logout. A implementação das
 demais operações de escrita segue conforme
@@ -82,6 +87,8 @@ demais operações de escrita segue conforme
   download protegido de contratos no perfil ADMIN.
 - [`docs/admin-operations.md`](docs/admin-operations.md): manutenção
   compartilhada e status operacional seguro no perfil ADMIN.
+- [`docs/admin-candy-xp.md`](docs/admin-candy-xp.md): atividades, liberações,
+  correções e indicadores Candy XP no perfil ADMIN.
 - [`tasks/plan.md`](tasks/plan.md): fases e checkpoints.
 - [`tasks/todo.md`](tasks/todo.md): tarefas verificáveis.
 

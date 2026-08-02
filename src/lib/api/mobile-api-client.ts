@@ -14,6 +14,19 @@ import {
   type MobileAdminAgendaLessonDetail,
 } from "@/lib/api/admin-agenda-contracts";
 import {
+  adminCandyXpActivityMutationResponseSchema,
+  adminCandyXpActivityResponseSchema,
+  adminCandyXpResponseSchema,
+  adminCandyXpReviewMutationResponseSchema,
+  type AdminCandyXpActivityMutation,
+  type AdminCandyXpActivityUpdateInput,
+  type AdminCandyXpInput,
+  type AdminCandyXpReviewInput,
+  type AdminCandyXpReviewMutation,
+  type MobileAdminCandyXp,
+  type MobileAdminCandyXpDetail,
+} from "@/lib/api/admin-candy-xp-contracts";
+import {
   adminContractResponseSchema,
   adminContractsResponseSchema,
   adminContractUploadResponseSchema,
@@ -1745,6 +1758,91 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
         );
       }
       return parsed.data.agenda;
+    },
+
+    async getAdminCandyXp(
+      input: AdminCandyXpInput = {},
+    ): Promise<MobileAdminCandyXp> {
+      const search = new URLSearchParams();
+      if (input.cursor) search.set("cursor", input.cursor);
+      if (input.limit !== undefined) search.set("limit", String(input.limit));
+      if (input.query) search.set("query", input.query);
+      if (input.status) search.set("status", input.status);
+      const response = await authenticatedRequest(
+        `/admin/candy-xp${search.size ? `?${search.toString()}` : ""}`,
+        { method: "GET" },
+      );
+      const parsed = adminCandyXpResponseSchema.safeParse(await response.json());
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou um Candy XP administrativo invalido.",
+          502,
+        );
+      }
+      return parsed.data.catalog;
+    },
+
+    async getAdminCandyXpActivity(
+      activityId: string,
+    ): Promise<MobileAdminCandyXpDetail> {
+      const response = await authenticatedRequest(
+        `/admin/candy-xp/${encodeURIComponent(activityId)}`,
+        { method: "GET" },
+      );
+      const parsed = adminCandyXpActivityResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor retornou uma atividade Candy XP invalida.",
+          502,
+        );
+      }
+      return parsed.data.detail;
+    },
+
+    async updateAdminCandyXpActivity(
+      activityId: string,
+      input: AdminCandyXpActivityUpdateInput,
+    ): Promise<AdminCandyXpActivityMutation> {
+      const response = await authenticatedRequest(
+        `/admin/candy-xp/${encodeURIComponent(activityId)}`,
+        { body: JSON.stringify(input), method: "PATCH" },
+      );
+      const parsed = adminCandyXpActivityMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou a alteracao do Candy XP.",
+          502,
+        );
+      }
+      return { ...parsed.data.result, message: parsed.data.message };
+    },
+
+    async reviewAdminCandyXpSubmission(
+      submissionId: string,
+      input: AdminCandyXpReviewInput,
+    ): Promise<AdminCandyXpReviewMutation> {
+      const response = await authenticatedRequest(
+        `/admin/candy-xp/submissions/${encodeURIComponent(submissionId)}/review`,
+        { body: JSON.stringify(input), method: "POST" },
+      );
+      const parsed = adminCandyXpReviewMutationResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (!parsed.success) {
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          "O servidor nao confirmou a correcao do Candy XP.",
+          502,
+        );
+      }
+      return { ...parsed.data.result, message: parsed.data.message };
     },
 
     async getAdminContracts(
