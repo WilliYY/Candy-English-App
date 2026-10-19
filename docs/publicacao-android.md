@@ -79,12 +79,38 @@ comprovados nesta preparação; o backlog funcional continua em `tasks/todo.md`.
 
 ### Bloqueios e próximas etapas
 
-1. Expo/EAS retornou `Not logged in`. É necessário autenticar a conta correta,
-   conferir projetos existentes e vincular o app antes de gerar o preview.
-2. O acesso à Play Console não foi confirmado: o controle do navegador encerrou
-   a inspeção por não identificar a URL atual com segurança. Não foi criado
-   cadastro de desenvolvedor, conta de serviço, chave ou cobrança.
-3. Após os acessos: gerar APK, testar os perfis em aparelho físico, conferir
+Na retomada de 19/10/2026, o acesso pelo Chrome foi confirmado em ambos os
+serviços. O impedimento anterior do controle do navegador foi superado pela
+integração de navegador disponível; não houve extração de cookies ou tokens.
+
+- **Google Play:** rascunho `Candy English` criado na conta pessoal existente,
+  em português do Brasil, como aplicativo gratuito, com o identificador
+  `br.com.candyenglish.app`. O Console confirmou a disponibilidade do pacote.
+  O responsável autorizou explicitamente o aceite dos termos e declarações
+  necessários à criação. O endereço público de privacidade foi salvo no
+  rascunho, sem enviar uma versão para revisão ou publicar o app.
+  As descrições curta e completa de `ficha-google-play.md` também foram salvas
+  como rascunho, e a categoria foi definida como Educação; imagens e
+  screenshots ainda estão pendentes.
+- **Expo:** projeto dedicado criado na conta autenticada, separado de outros
+  aplicativos: [Candy English no Expo](https://expo.dev/accounts/willmils-team/projects/candy-english-app).
+  O identificador real exibido pela criação é
+  `7a6b08a9-bcdd-474f-bbd7-d182e648b3d0`. Isso não é uma credencial.
+- **Teste obrigatório confirmado no painel:** pelo menos 12 participantes
+  inscritos continuamente por 14 dias no teste fechado antes de solicitar
+  acesso à produção. Teste interno e APK não substituem esse requisito.
+
+Pendências atuais:
+
+1. A sessão do navegador Expo não autentica automaticamente o EAS CLI. Foi
+   iniciado o fluxo oficial de autorização deste computador, aguardando a
+   aprovação pessoal no navegador. Não armazenar códigos temporários neste
+   documento. Depois, executar `eas init --id` com o identificador real acima.
+2. Não foi criada conta de serviço, chave de assinatura ou cobrança. Faltam
+   assinatura/build, revisão das declarações e dados da ficha. O link da
+   política foi cadastrado, mas o texto ainda deve ser revisado especificamente
+   para armazenamento e integrações da versão móvel final.
+3. Depois da autenticação CLI: gerar APK, testar os perfis em aparelho físico, conferir
    identidade/assinatura, público etário, Data safety e contas demonstrativas
    antes de enviar o AAB para teste interno. Reavaliar também as pendências de
    dependências descritas no documento próprio antes da distribuição pública.
@@ -133,7 +159,7 @@ comprovados nesta preparação; o backlog funcional continua em `tasks/todo.md`.
 
 ```powershell
 npx.cmd --yes eas-cli@25.2.0 login
-npx.cmd --yes eas-cli@25.2.0 init
+npx.cmd --yes eas-cli@25.2.0 init --id 7a6b08a9-bcdd-474f-bbd7-d182e648b3d0
 npm.cmd run check:release -- --online
 npm.cmd run build:android:preview
 ```

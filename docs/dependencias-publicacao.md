@@ -42,6 +42,32 @@ As origens remanescentes incluem seis pacotes: `braces`,
   Conferir avisos atualizados, alcance dos módulos no binário e comportamento
   de links antes do lançamento; não afirmar que o audit ficou zerado.
 
+## Revisão do caminho de links nativos
+
+A revisão do código instalado de `expo-router@57.0.28` confirmou que os links
+nativos padrão, iniciais e com o app aberto, passam por `redirectSystemPath`
+antes de `getStateFromURL`. Entretanto, o linking config fornece o fork Expo
+de `getStateFromPath`, cuja leitura da query usa `URLSearchParams`, e não a
+chamada `queryString.parse` do parser genérico separado de React Navigation.
+Assim, não foi comprovado que a entrada nativa padrão alcance a função
+afetada pelo advisory de `decode-uri-component`.
+
+As evidências estão em `node_modules/expo-router/build/getLinkingConfig.js`,
+`build/link/linking.js`, `build/fork/useLinking.native.js` e
+`build/fork/getStateFromPath-forks.js`. O parser genérico permanece em
+`build/react-navigation/core/getStateFromPath.js`.
+
+Não foi adicionado um hook apenas para declarar o alerta resolvido: ele não
+cobriria web, `legacy_subscribe` ou todas as entradas internas, e a dependência
+afetada continuaria no lock. Também não foram executados payloads de alto
+custo. Manter a pendência para revisão antes da distribuição pública, com
+checagem de upstream e testes de links no APK; reavaliar até 26/10/2026 ou antes
+do lançamento, o que ocorrer primeiro. A revisão não comprova ausência de
+outros caminhos alcançáveis no binário.
+
+- [NativeIntent no SDK 57](https://docs.expo.dev/versions/v57.0.0/sdk/router/#nativeintent)
+- [Tratamento oficial de links nativos](https://docs.expo.dev/router/advanced/native-intent/#rewrite-incoming-native-deep-links)
+
 ## Referências dos advisories
 
 - [shell-quote corrigido](https://github.com/advisories/GHSA-pqg4-j6r4-53mv)
