@@ -177,6 +177,11 @@ function ActivityContent({
 
       <Text style={styles.sectionTitle}>Gastos do periodo</Text>
       <Text style={styles.resultSummary}>{activity.expenseSummary.count} gasto(s) · {formatMoney(activity.expenseSummary.totalCents)}</Text>
+      {activity.expenseSummary.count > activity.expenses.length ? (
+        <Text style={styles.subtitle}>
+          Mostrando os {activity.expenses.length} gastos mais recentes. O total acima inclui todos os gastos do periodo.
+        </Text>
+      ) : null}
       {activity.expenses.length === 0 ? <View style={styles.stateCard}><Text style={styles.stateTitle}>Nenhum gasto neste periodo</Text></View> : null}
       {activity.expenses.map((expense) => (
         <View key={expense.id} style={styles.card}>

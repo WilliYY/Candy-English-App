@@ -11,6 +11,11 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "br.com.candyenglish.app",
+      "blockedPermissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#2C1338",
         "foregroundImage": "./assets/images/app-icon-foreground.png",
@@ -41,7 +46,13 @@
           "microphonePermission": false
         }
       ],
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
       "expo-asset",
       "expo-sharing"
     ],

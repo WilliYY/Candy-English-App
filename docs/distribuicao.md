@@ -14,12 +14,24 @@ permissão. O backend é a fonte única dos dados.
 - Uma mudança apenas na aparência ou no código da tela do site não altera
   automaticamente a tela nativa do aplicativo. Essa mudança precisa ser
   implementada e testada nos dois frontends.
+- Por orientação do responsável, toda alteração de tela ou funcionalidade no
+  site deve incluir a verificação e o ajuste do correspondente no aplicativo;
+  não considerar a entrega completa após alterar apenas um dos clientes.
 - Mudanças no backend devem manter os contratos da API compatíveis com versões
   do aplicativo que ainda estejam instaladas.
 - Cada pessoa entra com sua própria conta. O backend libera somente os recursos
   do seu papel: `STUDENT`, `TEACHER` ou `ADMIN`.
 
 ## Estado atual
+
+Preparação de publicação em 19/10/2026: os perfis `preview` e `production` de
+`eas.json` apontam explicitamente para `https://candyenglish.com.br` e desativam
+o carregamento do `.env` local no build. O primeiro gera APK interno; o segundo,
+AAB da loja. `npm.cmd run check:release -- --online` confere a configuração e os
+endpoints públicos sem autenticar nem alterar dados. O modo
+`npm.cmd run check:release:linked` também exige um projeto EAS vinculado.
+Isso não substitui login, assinatura, teste em aparelho e aprovação da loja.
+O estado detalhado está em [`publicacao-android.md`](publicacao-android.md).
 
 O código-fonte e os bundles Android, iOS e web são validados durante o
 desenvolvimento. Ainda não existe um APK, AAB ou IPA oficial para download.
@@ -29,9 +41,10 @@ Antes do primeiro instalador é necessário:
 1. concluir os fluxos críticos e os testes em aparelhos físicos;
 2. publicar o backend em um domínio HTTPS e configurar
    `EXPO_PUBLIC_API_URL`;
-3. definir os identificadores definitivos `android.package` e
-   `ios.bundleIdentifier`;
-4. criar ou vincular o projeto à conta Expo e gerar `eas.json`;
+3. confirmar `android.package=br.com.candyenglish.app` antes da primeira
+   publicação e definir `ios.bundleIdentifier` quando preparar iOS;
+4. fazer login e vincular o projeto à conta Expo/EAS; os perfis já existem em
+   `eas.json`, mas o identificador de projeto não deve ser inventado;
 5. cadastrar as variáveis do ambiente de build sem versionar segredos;
 6. preparar política de privacidade, imagens, descrições e declarações exigidas
    pelas lojas;

@@ -82,6 +82,29 @@ const activity: MobileAdminFinanceActivity = {
 describe("Admin finance operation screens", () => {
   afterEach(() => jest.restoreAllMocks());
 
+  it("distinguishes the full period total from the recent expenses shown", async () => {
+    const getAdminFinanceActivity = jest.fn(async () => ({
+      ...activity,
+      expenseSummary: { count: 51, totalCents: 5_100 },
+      expenses: Array.from({ length: 50 }, (_, index) => ({
+        ...activity.expenses[0]!,
+        amountCents: 100,
+        id: `expense-${index}`,
+      })),
+    }));
+    const view = await render(
+      <AdminFinanceActivityScreen
+        client={{ createAdminFinanceExpense: jest.fn(), getAdminFinanceActivity }}
+        initialPeriod={{ month: 8, year: 2026 }}
+        onBack={jest.fn()}
+      />,
+      { wrapper: createWrapper() },
+    );
+
+    expect(await view.findByText("51 gasto(s) · R$ 51,00")).toBeTruthy();
+    expect(view.getByText("Mostrando os 50 gastos mais recentes. O total acima inclui todos os gastos do periodo.")).toBeTruthy();
+  });
+
   it("updates a payment only after explicit confirmation with version and operation id", async () => {
     const getAdminFinancePayment = jest.fn(async () => payment);
     const updateAdminFinancePayment = jest.fn(async (_id, input) => ({

@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { styles } from "@/features/auth/sign-in-screen.styles";
+import { PrivacyLink } from "@/components/privacy-link";
 
 const credentialsSchema = z.object({
   email: z
@@ -194,6 +195,7 @@ export function SignInScreen({ onBack, onSubmit }: SignInScreenProps) {
           <Text style={styles.securityNote}>
             Sua senha é enviada com conexão segura e nunca fica salva no app.
           </Text>
+          <PrivacyLink />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

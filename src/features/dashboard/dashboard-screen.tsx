@@ -14,6 +14,7 @@ import { getMobileApi } from "@/lib/api/mobile-api";
 import type { MobileOverview } from "@/lib/api/mobile-api-client";
 import type { Role } from "@/lib/auth/auth-session";
 import { colors, radii, spacing, typeScale } from "@/theme/tokens";
+import { PrivacyLink } from "@/components/privacy-link";
 
 type DashboardModule = {
   description: string;
@@ -233,6 +234,7 @@ export function DashboardScreen({
             </Pressable>
           ))}
         </View>
+        <PrivacyLink />
       </ScrollView>
     </SafeAreaView>
   );

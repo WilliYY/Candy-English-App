@@ -6,6 +6,10 @@ administração.
 O aplicativo usará o mesmo backend, banco PostgreSQL, usuários, permissões e
 dados do projeto web Candy English.
 
+Ao alterar dados, telas ou funcionalidades no site, verificar e ajustar também
+o correspondente neste aplicativo. Os dados são compartilhados pelo backend;
+mudanças visuais do site não atualizam automaticamente as telas nativas.
+
 ## Status
 
 Autenticação segura, sessão persistente, painéis por role, módulos nativos,
@@ -81,6 +85,8 @@ demais operações de escrita segue conforme
   autenticação e armazenamento de tokens.
 - [`docs/distribuicao.md`](docs/distribuicao.md): comunicação com o site,
   previews, downloads, lojas e atualizações.
+- [`docs/publicacao-android.md`](docs/publicacao-android.md): preparação Android,
+  validações e bloqueios reais de conta/publicação.
 - [`docs/teacher-smoke.md`](docs/teacher-smoke.md): matriz de isolamento e
   verificação automatizada completa do perfil teacher.
 - [`docs/admin-contracts.md`](docs/admin-contracts.md): catálogo, envio e

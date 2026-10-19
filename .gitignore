@@ -25,6 +25,15 @@ coverage/
 !.env.example
 *.pem
 *.key
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+credentials.json
+google-service-account*.json
+*-service-account.json
+service-account*.json
+output/
 
 # Editors and operating systems
 .DS_Store
