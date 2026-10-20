@@ -48,7 +48,8 @@ conflitos. Esta tarefa não cria outro banco nem pagamentos online.
 ## Evidências finais
 
 Preparação técnica concluída em 19/10/2026, com os bloqueios de publicação
-abaixo explicitamente pendentes. Nenhum APK/AAB foi gerado ou enviado à loja.
+abaixo explicitamente pendentes. O primeiro APK interno foi gerado na
+continuação; nenhum AAB foi gerado nem versão enviada à loja.
 
 - Instalação limpa com peers estritos aprovada; dependências diretas alinhadas
   ao Expo SDK 57 e patches transitivos compatíveis instalados.
@@ -62,11 +63,12 @@ abaixo explicitamente pendentes. Nenhum APK/AAB foi gerado ou enviado à loja.
   módulos. O bundle contém `https://candyenglish.com.br` e não contém o endereço
   local antigo. Exportar JavaScript/bytecode **não gera um APK/AAB assinado**.
 - Introspecção nativa: câmera e gravação de áudio têm `tools:node=remove` no
-  manifesto Android; iOS não declara uso do microfone. Confirmar novamente no
-  binário final, que ainda depende do EAS/assinatura.
+  manifesto Android; iOS não declara uso do microfone. A inspeção simples do
+  APK abaixo acrescenta evidências, mas não substitui análise com aapt e teste
+  em aparelho.
 - `check:release --online` aprovado: health/privacidade públicos e sessão/
-  financeiro sem token rejeitados. `--require-linked` bloqueia corretamente
-  o build enquanto não houver um projeto EAS real vinculado.
+  financeiro sem token rejeitados. `--require-linked` bloqueou o build antes
+  do vínculo e passou depois da confirmação do projeto EAS real.
 - Backend corrigido e publicado no Oracle em `03abe15`, sem migration: conflitos
   financeiros em ambos os sentidos, versão após salvar no site e resumo de
   gastos sem truncar o total. Build local/Docker e smokes de servidor, auth,
@@ -110,16 +112,47 @@ integração de navegador disponível; não houve extração de cookies ou token
 
 Pendências atuais:
 
-1. A autenticação CLI e o vínculo foram concluídos. Gerar o primeiro APK
-   interno; o sucesso do login não comprova build, assinatura ou instalação.
-2. Ainda não foi criada conta de serviço, chave de assinatura ou cobrança. Faltam
-   assinatura/build, revisão das declarações e dados da ficha. O link da
+1. A autenticação CLI, o vínculo e o primeiro APK foram concluídos. Falta
+   instalar e validar em Android físico; build não comprova funcionamento de
+   todos os fluxos no aparelho.
+2. A chave de assinatura Android foi criada e armazenada no EAS; não foi
+   baixada nem versionada. Não foi criada conta de serviço ou cobrança. Faltam
+   revisar as declarações e dados da ficha. O link da
    política foi cadastrado, mas o texto ainda deve ser revisado especificamente
    para armazenamento e integrações da versão móvel final.
 3. Depois do APK: testar os perfis em aparelho físico, conferir
    identidade/assinatura, público etário, Data safety e contas demonstrativas
    antes de enviar o AAB para teste interno. Reavaliar também as pendências de
    dependências descritas no documento próprio antes da distribuição pública.
+
+### Primeiro build remoto
+
+- Preview Android: `86057d51-2994-412d-bbb2-ce738b09ffd8`, iniciado em
+  19/10/2026, com o commit `5c6ae33` e `versionCode=1`.
+- [Acompanhar o build no Expo](https://expo.dev/accounts/willmils-team/projects/candy-english-app/builds/86057d51-2994-412d-bbb2-ce738b09ffd8).
+- **Concluído:** a API oficial confirmou `FINISHED` em 19/10/2026 às 22:53
+  (`2026-10-20T01:53:28.267Z`). A chave no EAS, o upload de 1,1 MB, o
+  fingerprint e o build Android foram concluídos, sem criar builds duplicados.
+- O acompanhamento animado do terminal foi encerrado depois de enfileirar o
+  build, para evitar redesenho excessivo de logs. O `KeyboardInterrupt` local
+  não cancelou o job: consultas oficiais posteriores confirmaram execução e
+  conclusão no servidor.
+- APK `0.1.0`, código 1, entregue ao responsável por link e cópia local fora
+  do repositório. Download HTTP 200; tamanho **110.385.240 bytes**.
+- SHA-256: `0f01ecf6f8d3b29bb085a0e456bb49937e04895971b4e0fc6cd99eb2d6cd6679`.
+- Checagens locais: integridade ZIP/CRC aprovada; manifest, DEX e recursos
+  presentes; identidade `br.com.candyenglish.app` encontrada; bundle contém o
+  backend oficial e não contém o endereço local de desenvolvimento. Nenhum
+  arquivo `.env` foi encontrado no APK.
+- As strings de permissão CAMERA e RECORD_AUDIO não aparecem no manifesto
+  binário inspecionado em UTF-8/UTF-16. É uma checagem limitada de strings, não
+  uma análise completa com aapt, verificação criptográfica da assinatura ou
+  teste físico. Não afirmar que o app foi aberto no celular.
+- Não repetir o build por demora ou ausência de URL no terminal. Conferir
+  primeiro `eas build:list --platform android --build-profile preview --limit
+  10 --json --non-interactive`; a solicitação pode já existir no servidor.
+- Não houve envio à Play Store. O objetivo inicial é um APK interno para
+  validação em Android físico, sem alterar pagamentos reais durante os testes.
 
 ### Arquivos e comandos
 

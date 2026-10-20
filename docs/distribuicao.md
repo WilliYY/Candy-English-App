@@ -34,22 +34,24 @@ Isso não substitui login, assinatura, teste em aparelho e aprovação da loja.
 O estado detalhado está em [`publicacao-android.md`](publicacao-android.md).
 
 O código-fonte e os bundles Android, iOS e web são validados durante o
-desenvolvimento. Ainda não existe um APK, AAB ou IPA oficial para download.
+desenvolvimento. O primeiro **APK interno Android 0.1.0** foi gerado pelo EAS
+em 19/10/2026, build `86057d51-2994-412d-bbb2-ce738b09ffd8`, código 1, e
+entregue ao responsável. Integridade do arquivo e backend oficial foram
+conferidos; instalação e fluxos em aparelho físico continuam pendentes.
+O app ainda não foi publicado na Play Store. Não há AAB ou IPA de distribuição.
 
-Antes do primeiro instalador é necessário:
+Estado antes de compartilhar com testadores ou enviar à loja:
 
-1. concluir os fluxos críticos e os testes em aparelhos físicos;
-2. publicar o backend em um domínio HTTPS e configurar
-   `EXPO_PUBLIC_API_URL`;
-3. confirmar `android.package=br.com.candyenglish.app` antes da primeira
-   publicação e definir `ios.bundleIdentifier` quando preparar iOS;
-4. fazer login e vincular o projeto à conta Expo/EAS; os perfis já existem em
-   `eas.json`, mas o identificador de projeto não deve ser inventado;
-5. cadastrar as variáveis do ambiente de build sem versionar segredos;
-6. preparar política de privacidade, imagens, descrições e declarações exigidas
-   pelas lojas;
-7. possuir contas Google Play Console e Apple Developer para publicar nas
-   lojas.
+- [x] Backend HTTPS oficial e `EXPO_PUBLIC_API_URL` nos perfis de build.
+- [x] Identificador Android `br.com.candyenglish.app` e rascunho na Play Console.
+- [x] Login EAS e vínculo com o projeto dedicado, sem copiar tokens da página.
+- [x] Primeiro APK interno gerado, baixado e conferido, sem versionar o binário.
+- [ ] Validar login, permissões e fluxos disponíveis em Android físico.
+- [ ] Revisar política, Data safety, público, classificação e acesso do revisor;
+  completar imagens e contatos da ficha da loja.
+- [ ] Gerar AAB após aprovar o preview e executar testes exigidos pela Google.
+- [ ] Para iOS, definir bundleIdentifier e preparar a conta Apple Developer;
+  essa distribuição ainda não foi iniciada.
 
 Os identificadores do aplicativo devem ser escolhidos antes da primeira
 publicação, pois trocá-los depois cria outro aplicativo para as lojas e para os
