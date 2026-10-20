@@ -59,6 +59,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7a6b08a9-bcdd-474f-bbd7-d182e648b3d0"
+      }
+    },
+    "owner": "willmils-team"
   }
 }

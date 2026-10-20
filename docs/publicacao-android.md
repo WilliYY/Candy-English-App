@@ -96,21 +96,27 @@ integração de navegador disponível; não houve extração de cookies ou token
   aplicativos: [Candy English no Expo](https://expo.dev/accounts/willmils-team/projects/candy-english-app).
   O identificador real exibido pela criação é
   `7a6b08a9-bcdd-474f-bbd7-d182e648b3d0`. Isso não é uma credencial.
+  Na continuação, o responsável autorizou explicitamente o botão `Approve`
+  para conectar o EAS CLI à conta e organizações neste computador. O fluxo
+  oficial de login no navegador terminou com `Authentication successful` e
+  o CLI confirmou `Logged in`, sem copiar códigos de autenticação da página.
+  `eas init --id` confirmou o vínculo e gravou somente o projeto e o owner
+  `willmils-team` no app config. As permissões de áudio continuam sob controle
+  do plugin existente, sem duplicá-las manualmente no manifest do aplicativo.
+  `check:release --require-linked --online` passou após o vínculo.
 - **Teste obrigatório confirmado no painel:** pelo menos 12 participantes
   inscritos continuamente por 14 dias no teste fechado antes de solicitar
   acesso à produção. Teste interno e APK não substituem esse requisito.
 
 Pendências atuais:
 
-1. A sessão do navegador Expo não autentica automaticamente o EAS CLI. Foi
-   iniciado o fluxo oficial de autorização deste computador, aguardando a
-   aprovação pessoal no navegador. Não armazenar códigos temporários neste
-   documento. Depois, executar `eas init --id` com o identificador real acima.
-2. Não foi criada conta de serviço, chave de assinatura ou cobrança. Faltam
+1. A autenticação CLI e o vínculo foram concluídos. Gerar o primeiro APK
+   interno; o sucesso do login não comprova build, assinatura ou instalação.
+2. Ainda não foi criada conta de serviço, chave de assinatura ou cobrança. Faltam
    assinatura/build, revisão das declarações e dados da ficha. O link da
    política foi cadastrado, mas o texto ainda deve ser revisado especificamente
    para armazenamento e integrações da versão móvel final.
-3. Depois da autenticação CLI: gerar APK, testar os perfis em aparelho físico, conferir
+3. Depois do APK: testar os perfis em aparelho físico, conferir
    identidade/assinatura, público etário, Data safety e contas demonstrativas
    antes de enviar o AAB para teste interno. Reavaliar também as pendências de
    dependências descritas no documento próprio antes da distribuição pública.
