@@ -43,6 +43,9 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends libpulse0
           export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH"
+          export ANDROID_USER_HOME="$RUNNER_TEMP/candy-android"
+          export ANDROID_AVD_HOME="$RUNNER_TEMP/candy-avd"
+          mkdir -p "$ANDROID_USER_HOME" "$ANDROID_AVD_HOME"
           sdkmanager --licenses < <(printf 'y\n%.0s' {1..100}) > "$RUNNER_TEMP/android-licenses.log"
           if [[ ! -x "$ANDROID_HOME/emulator/emulator" ]]; then
             sdkmanager emulator > "$RUNNER_TEMP/emulator-install.log"
@@ -50,7 +53,9 @@ jobs:
           emulator -version
           sdkmanager 'system-images;android-35;default;x86_64' > "$RUNNER_TEMP/android-install.log"
           echo no | avdmanager create avd --force --name candy-preview \
-            --package 'system-images;android-35;default;x86_64' --device pixel_7
+            --package 'system-images;android-35;default;x86_64' --device pixel_7 \
+            --path "$ANDROID_AVD_HOME/candy-preview.avd"
+          emulator -list-avds | grep -Fx candy-preview
           emulator -avd candy-preview -no-window -no-audio -no-boot-anim -no-snapshot \
             -gpu swiftshader_indirect -memory 2048 -cores 2 > "$RUNNER_TEMP/emulator.log" 2>&1 &
           echo "emulator_pid=$!" >> "$GITHUB_ENV"
