@@ -256,6 +256,21 @@ reais para validação. O PC local não tinha SDK/Java/emulador configurados, e 
 espaço disponível em C: era insuficiente para uma instalação confortável. Não
 foram alterados recursos de virtualização do Windows nem proteções do celular.
 
+**Resultado comprovado:** [run 39981826088](https://github.com/WilliYY/Candy-English-App/actions/runs/39981826088)
+concluiu com `success` no commit `3e837b7`. Instalou o APK original, abriu a
+apresentação, localizou o botão de entrada pela árvore de acessibilidade e
+chegou ao formulário nativo de login. O processo estava ativo e o buffer de
+crash filtrado estava vazio. `apksigner verify` confirmou a assinatura V2.
+Nenhuma conta ou senha foi usada e nenhum pagamento foi criado ou alterado.
+
+Os ensaios anteriores detectaram duas falhas do ambiente do runner: biblioteca
+`libpulse.so.0` ausente e divergência entre os diretórios de AVD das ferramentas.
+Foram corrigidas apenas no workflow. A primeira abertura funcional também
+mostrou que o app inicia pela apresentação, não pelo login; o teste foi ajustado
+para percorrer esse fluxo real, sem mudar o aplicativo nem relaxar a verificação
+do formulário. Screenshots anônimos de abertura/login e evidências foram
+preservados fora do Git, em `Documents/Codex/outputs/candy-publicacao/`.
+
 ### Google Play e AAB
 
 - Painel consultado novamente em 23/10: app ainda não publicado; configuração
@@ -270,9 +285,45 @@ foram alterados recursos de virtualização do Windows nem proteções do celula
   `production`, commit-fonte `6dd16ce`. Enfileirado em
   `2026-10-23T15:18:12.896Z`. A confirmação inicial `NEW` não comprova conclusão;
   consultar o build antes de repetir ou fazer upload.
+- Na última consulta desta continuação, o AAB passou para **`IN_PROGRESS`**,
+  depois de aproximadamente meia hora na fila gratuita do Expo. Ainda não
+  havia artefato para download; não repetir a solicitação nem afirmar upload.
+- O contato público `candyenglishbr@gmail.com` e o site HTTPS foram salvos e
+  conferidos na ficha do Google Play. A criação da lista interna restrita ao
+  responsável ainda não foi concluída; não foram adicionados alunos nem
+  enviados convites.
+- O upload pelo Chrome encontrou a necessidade de permitir URLs de arquivo
+  na extensão ChatGPT. O responsável autorizou explicitamente essa permissão,
+  mas a política da ferramenta bloqueia o acesso a `chrome://extensions`.
+  Foi solicitado que ele ative a opção manualmente no perfil Willian. Não
+  contornar esse bloqueio por comandos, alteração de perfil ou outra superfície.
+  Retomar o envio somente depois da confirmação e com o AAB concluído.
 - A ficha para público infantil exige revisar as políticas Families,
   privacidade, SDKs e tratamento de dados antes da submissão pública. A
   autorização para "todas as idades" não elimina essas exigências.
+
+### Revisão mínima antes de disponibilizar para crianças
+
+A consulta delimitada dos fluxos nativos de Catty e chat não localizou denúncia
+de resposta de IA, denúncia/bloqueio de usuário no chat 1:1 nem uma verificação
+de idade/consentimento do responsável específica desses módulos. Isso não prova
+inexistência em todos os caminhos, mas impede declarar conformidade sem revisar
+e validar esses controles. O site possui feedback de respostas da Catty; não
+presumir que esse mecanismo exista no app ou que cubra toda denúncia sensível.
+
+As políticas oficiais exigem canal de denúncia dentro do app para IA e UGC;
+o Google cita expressamente apps de escolas e requisitos adicionais para
+interações infantis. Antes da produção, conferir também os termos aplicáveis
+ao provedor de IA e os dados que podem ser processados para menores. Não
+declarar público adulto para contornar essas exigências nem enviar contas reais
+de alunos a revisores. Teste interno deve permanecer restrito a adultos com
+dados de demonstração até a revisão. Nenhum desses módulos foi alterado nesta
+continuação.
+
+- [Políticas Families](https://support.google.com/googleplay/android-developer/answer/9893335)
+- [Conteúdo gerado por usuários](https://support.google.com/googleplay/android-developer/answer/9876937)
+- [Conteúdo gerado por IA](https://support.google.com/googleplay/android-developer/answer/13985936)
+- [Público-alvo](https://support.google.com/googleplay/android-developer/answer/9867159)
 
 ### Fontes desta continuação
 
