@@ -217,7 +217,72 @@ keystore ou senha no Git. O rascunho interno deve ser revisado antes de liberar
 para testadores. Conta pessoal nova pode exigir teste fechado adicional antes
 da solicitação de produção; teste interno não substitui essa exigência.
 
-## Fontes oficiais
+## Continuação — 23/10/2026
+
+O responsável autorizou testar o APK em Android simulado e avançar na
+publicação, sem contratar serviços pagos. Também autorizou explicitamente os
+termos adicionais do GitHub Actions e a licença do Android SDK. Informou que
+a escola atende todas as idades, incluindo menores de 13 anos, e autorizou o
+e-mail público da Candy como suporte. A página pública `/contato` confirma
+`candyenglishbr@gmail.com`; não usar o e-mail de login de um administrador como
+contato público por suposição.
+
+### Simulação isolada
+
+O workflow `.github/workflows/android-preview-smoke.yml` usa um runner
+**standard** Ubuntu no repositório público, sem plano pago, secrets, login ou
+dados reais. Executa manualmente ou quando o próprio workflow muda em `main`.
+Baixa somente o APK preview identificado acima, exige seu SHA-256 e verifica
+assinatura/pacote com as ferramentas oficiais Android. Um emulador descartável
+Android 35/x86_64 instala o binário e procura as marcas da tela nativa de login.
+
+A evidência inclui screenshot anônimo, hierarquia da tela, assinatura,
+manifesto, estado final e buffer de crash. O buffer global é preservado, mas a
+checagem de crash é filtrada pelo PID do Candy para não atribuir falhas de
+outros processos ao app. A captura fica disponível por apenas três dias no
+Actions; preservar resultados necessários fora do temporário antes de encerrar.
+Não enviar credenciais, logs autenticados ou dados de alunos a esse workflow.
+
+Validação local: TypeScript e lint passaram. A primeira execução da suíte teve
+dois testes de homework reprovados; a suíte afetada passou isoladamente (4/4)
+e a repetição completa passou com **38 suítes e 117 testes**, sem mudar código,
+timeouts ou desativar testes. Isso indica instabilidade na execução inicial,
+não comprova por si só sua causa. Os blocos Bash do workflow passaram em
+`bash -n`; a revisão também corrigiu o filtro de crash descrito acima.
+
+Esse teste não comprova login autenticado, módulos financeiros ou comportamento
+no S23 Ultra. Os testes de componentes usam fixtures; não criar pagamentos
+reais para validação. O PC local não tinha SDK/Java/emulador configurados, e o
+espaço disponível em C: era insuficiente para uma instalação confortável. Não
+foram alterados recursos de virtualização do Windows nem proteções do celular.
+
+### Google Play e AAB
+
+- Painel consultado novamente em 23/10: app ainda não publicado; configuração
+  com 1 de 11 tarefas concluídas; **zero testadores** no teste fechado.
+- O acesso público continua bloqueado até o teste fechado com **12 pessoas
+  inscritas por 14 dias contínuos** e posterior aprovação. Emulador, testes
+  internos e relatórios automáticos não substituem participantes reais.
+- Rascunho inicial de teste interno criado, com nome e notas de versão salvos.
+  Não confundir rascunho com envio do AAB ou distribuição liberada.
+- Primeiro AAB solicitado no EAS: build
+  `356f05be-b13c-4f22-ada9-88c08a133ece`, versão `0.1.0`, código `2`, perfil
+  `production`, commit-fonte `6dd16ce`. Enfileirado em
+  `2026-10-23T15:18:12.896Z`. A confirmação inicial `NEW` não comprova conclusão;
+  consultar o build antes de repetir ou fazer upload.
+- A ficha para público infantil exige revisar as políticas Families,
+  privacidade, SDKs e tratamento de dados antes da submissão pública. A
+  autorização para "todas as idades" não elimina essas exigências.
+
+### Fontes desta continuação
+
+- [Runners GitHub e preços](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+- [KVM em runners Linux](https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/)
+- [Emulador Android por linha de comando](https://developer.android.com/studio/run/emulator-commandline)
+- [Teste fechado para contas pessoais](https://support.google.com/googleplay/android-developer/answer/14151465)
+- [Relatório automático pré-lançamento](https://support.google.com/googleplay/android-developer/answer/9842757)
+
+## Fontes oficiais da preparação inicial
 
 - [Configuração dos perfis EAS](https://docs.expo.dev/eas/json/)
 - [Ambientes e variáveis públicas](https://docs.expo.dev/eas/environment-variables/)
