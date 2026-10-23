@@ -87,6 +87,15 @@ jobs:
           for attempt in {1..45}; do
             if adb shell uiautomator dump /sdcard/candy-window.xml >/dev/null 2>&1; then
               adb exec-out cat /sdcard/candy-window.xml > "$RUNNER_TEMP/candy-evidence/login.xml"
+              if grep -q 'content-desc="Entrar no Candy English"' "$RUNNER_TEMP/candy-evidence/login.xml"; then
+                adb exec-out screencap -p > "$RUNNER_TEMP/candy-evidence/launch.png"
+                coordinates="$(python3 -c \
+                  'import re,sys,xml.etree.ElementTree as E; n=next(n for n in E.parse(sys.argv[1]).iter("node") if n.get("content-desc")=="Entrar no Candy English" and n.get("clickable")=="true" and n.get("package")=="br.com.candyenglish.app"); b=list(map(int,re.findall(r"\d+",n.get("bounds","")))); print((b[0]+b[2])//2,(b[1]+b[3])//2)' \
+                  "$RUNNER_TEMP/candy-evidence/login.xml")"
+                read -r tap_x tap_y <<< "$coordinates"
+                adb shell input tap "$tap_x" "$tap_y"
+                continue
+              fi
               if grep -q 'ACESSO CANDY ENGLISH' "$RUNNER_TEMP/candy-evidence/login.xml" \
                 && grep -q 'Entrar' "$RUNNER_TEMP/candy-evidence/login.xml" \
                 && grep -q 'Senha' "$RUNNER_TEMP/candy-evidence/login.xml"; then
