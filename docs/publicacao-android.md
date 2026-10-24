@@ -285,9 +285,17 @@ preservados fora do Git, em `Documents/Codex/outputs/candy-publicacao/`.
   `production`, commit-fonte `6dd16ce`. Enfileirado em
   `2026-10-23T15:18:12.896Z`. A confirmação inicial `NEW` não comprova conclusão;
   consultar o build antes de repetir ou fazer upload.
-- Na última consulta desta continuação, o AAB passou para **`IN_PROGRESS`**,
-  depois de aproximadamente meia hora na fila gratuita do Expo. Ainda não
-  havia artefato para download; não repetir a solicitação nem afirmar upload.
+- O AAB concluiu com **`FINISHED`** em `2026-10-23T16:02:10.125Z`
+  (13:02 em São Paulo). A versão `0.1.0`, código `2`, distribuição `STORE`
+  e commit-fonte `6dd16ce` foram conferidos pela consulta oficial do EAS.
+  Não repetir esse build. O arquivo foi preservado fora do Git como
+  `Documents/Codex/outputs/candy-publicacao/Candy-English-0.1.0-production-356f05be.aab`.
+  Possui 76.939.922 bytes; SHA-256
+  `0e06e47105c39148e4aae8b3e0eab516624b832c146ae15f45a132534f4a4446`.
+  A verificação CRC das 1.766 entradas ZIP passou; manifesto, configuração do
+  bundle, DEX e arquivos de assinatura estão presentes. Isso comprova a
+  integridade estrutural, não substitui a validação da assinatura nem o teste
+  do AAB pelo Google Play. A simulação aprovada acima utilizou o APK de preview.
 - O contato público `candyenglishbr@gmail.com` e o site HTTPS foram salvos e
   conferidos na ficha do Google Play. A criação da lista interna restrita ao
   responsável ainda não foi concluída; não foram adicionados alunos nem
@@ -297,7 +305,26 @@ preservados fora do Git, em `Documents/Codex/outputs/candy-publicacao/`.
   mas a política da ferramenta bloqueia o acesso a `chrome://extensions`.
   Foi solicitado que ele ative a opção manualmente no perfil Willian. Não
   contornar esse bloqueio por comandos, alteração de perfil ou outra superfície.
-  Retomar o envio somente depois da confirmação e com o AAB concluído.
+  Retomar o upload pelo navegador somente depois da confirmação manual.
+- Também foi tentada a alternativa oficial `eas-cli@25.2.0 submit --platform
+  android --profile production --id 356f05be-b13c-4f22-ada9-88c08a133ece
+  --non-interactive --no-wait`, com destino `internal` e status `draft` já
+  definidos em `eas.json`. O comando terminou com código `1`: `Google Service
+  Account Keys cannot be set up in --non-interactive mode.` Não houve envio
+  confirmado nem chave criada. O responsável autorizou explicitamente criar
+  a integração Google Play–Expo restrita ao Candy e guardar a chave no Expo.
+- Na conta `willian13258@gmail.com`, foi criado o projeto isolado
+  **Candy English Play**, ID `candy-english-play`, sem reutilizar os projetos
+  existentes. A aba retornou o título desse projeto e a URL de contas de
+  serviço com esse ID. Em seguida, o controle do Chrome ficou indisponível
+  (`Debugger unattached` e `Tabs can only be moved between windows in the same
+  profile`). Uma retomada pela mesma conexão não resolveu. A aba foi preservada
+  para continuação. Não foram confirmadas conta de serviço, chave, ativação
+  da API, permissões no Play nem configuração no Expo. O `gcloud` também não
+  estava instalado nos locais usuais; não foram extraídas credenciais do
+  navegador. Retomar essa configuração no projeto já criado quando a conexão
+  estiver operacional, sem repetir a criação nem alterar o acesso a outros
+  apps. Manter o rascunho e não declarar teste interno liberado ou publicação.
 - A ficha para público infantil exige revisar as políticas Families,
   privacidade, SDKs e tratamento de dados antes da submissão pública. A
   autorização para "todas as idades" não elimina essas exigências.
