@@ -370,6 +370,46 @@ elimina as pendências de público infantil abaixo.
 - [Guia oficial da credencial para submissões](https://github.com/expo/fyi/blob/main/creating-google-service-account.md)
 - [Primeira submissão e status de rascunho](https://docs.expo.dev/submit/android/#first-time-submission)
 
+### Teste interno ativo — 24/10/2026
+
+O responsável autorizou configurar e liberar o teste privado. Foi criada a
+lista **Candy - teste interno adulto**, com somente a conta Google do próprio
+responsável: **1 usuário**, sem alunos, convites para terceiros ou novas contas
+do AVA. A lista ficou selecionada e salva na faixa interna; o painel confirmou
+duas das três tarefas de configuração concluídas antes da liberação.
+
+Na revisão do código `2`, não havia erro bloqueante. O único aviso informava
+a ausência de arquivo de desofuscação, útil para investigar falhas quando há
+código R8/ProGuard. Não foi alterado o binário nem solicitado novo build para
+suprimir esse aviso. Após `Salvar e publicar` e a confirmação específica da
+faixa interna, o Google Play mostrou **Ativo** e **Disponível para testadores
+internos**, versão `0.1.0 (2) - Teste interno`.
+
+O botão de copiar o [link do teste interno](https://play.google.com/apps/internaltest/4701748008850736251)
+ficou habilitado. O responsável precisa abrir o link com a mesma conta Google
+selecionada na lista, aceitar participar e instalar pela Play Store no Android.
+A instalação e o uso no telefone não foram simulados nem confirmados. O link
+pode levar algum tempo para propagar. O Google informou que o nome temporário
+é `br.com.candyenglish.app (unreviewed)` até a conclusão da configuração/revisão.
+Isso não é publicação pública, conclusão da ficha ou aprovação para crianças.
+
+O **teste fechado ainda não foi iniciado**. A exigência de 12 participantes
+inscritos continuamente por 14 dias é da faixa fechada, não desta faixa interna.
+Cadastrar e-mails, distribuir o APK ou usar emulador não comprova participação.
+São necessários participantes reais, adesão ao convite e testes com feedback;
+cumprir o período permite solicitar acesso à produção, não aprovação automática.
+Ao migrar um participante do teste interno para o fechado, ele deve sair do
+programa interno e aderir ao fechado. A lista dos participantes e as demais
+etapas obrigatórias da ficha/conformidade continuam pendentes.
+
+Não foram alterados código, backend, banco, pagamentos ou permissões do AVA.
+Usar dados de demonstração para os testes; escritas autenticadas continuam
+atingindo o mesmo backend do site. A confirmação visual ficou preservada fora
+do Git em `Documents/Codex/outputs/candy-publicacao/`.
+
+- [Exigência e participação no teste fechado](https://support.google.com/googleplay/android-developer/answer/14151465)
+- [Configuração de testadores e transição de faixas](https://support.google.com/googleplay/android-developer/answer/9845334)
+
 ### Revisão mínima antes de disponibilizar para crianças
 
 A consulta delimitada dos fluxos nativos de Catty e chat não localizou denúncia
