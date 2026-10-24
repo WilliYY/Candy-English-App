@@ -322,12 +322,53 @@ preservados fora do Git, em `Documents/Codex/outputs/candy-publicacao/`.
   para continuação. Não foram confirmadas conta de serviço, chave, ativação
   da API, permissões no Play nem configuração no Expo. O `gcloud` também não
   estava instalado nos locais usuais; não foram extraídas credenciais do
-  navegador. Retomar essa configuração no projeto já criado quando a conexão
-  estiver operacional, sem repetir a criação nem alterar o acesso a outros
-  apps. Manter o rascunho e não declarar teste interno liberado ou publicação.
+  navegador. Esse bloqueio foi superado na retomada documentada abaixo, sem
+  repetir a criação do projeto nem alterar o acesso a outros apps.
 - A ficha para público infantil exige revisar as políticas Families,
   privacidade, SDKs e tratamento de dados antes da submissão pública. A
   autorização para "todas as idades" não elimina essas exigências.
+
+### Integração Google Play–Expo e upload concluídos
+
+Na retomada de 23/10, a conexão do perfil Willian voltou a funcionar. Foi
+criada a conta de serviço `candy-eas-submit@candy-english-play.iam.gserviceaccount.com`
+no projeto já existente, sem atribuir papéis adicionais do Google Cloud.
+O responsável também aceitou explicitamente os termos das APIs do Google e
+da Google Play Android Developer API antes de sua ativação. A tela confirmou
+`androidpublisher.googleapis.com` com status **Ativado**, sem contratar plano
+nem associar conta de cobrança.
+
+No Google Play, a conta técnica ficou **Ativa**, com acesso somente a
+`br.com.candyenglish.app`: leitura do app, leitura de qualidade automática,
+edição de apps em rascunho e envio para faixas de teste. Não foram concedidos
+administração, produção, dados financeiros, pedidos/assinaturas, gerenciamento
+de testadores, presença na loja nem acesso global da conta.
+
+`eas-cli@25.2.0 credentials --platform android`, no perfil `production`,
+confirmou o upload da chave e sua vinculação ao pacote para submissões. A
+credencial não foi exibida, incluída no Git, enviada ao backend ou reutilizada
+para FCM. A cópia local baixada recebeu ACL somente para o usuário Windows
+atual e SYSTEM. Sua remoção automática foi recusada pela política da ferramenta;
+foi solicitada autorização específica para excluir somente essa cópia, sem
+apagar a chave armazenada no Expo. Não contornar a recusa por outro mecanismo.
+
+O comando de submissão do AAB já concluído, sem novo build e sem alterar
+`eas.json`, criou a [submissão fde63188](https://expo.dev/accounts/willmils-team/projects/candy-english-app/submissions/fde63188-edce-4dd2-9ac2-f17dff97ed09).
+O Expo confirmou **Succeeded**, destino `internal`, status `draft`, versão
+`0.1.0`, código `2`, build `356f05be-b13c-4f22-ada9-88c08a133ece`.
+O Google Play também confirmou o código `2` no resumo do rascunho interno,
+com artefato `4860243880235918439`. A faixa continua **Inativa / Rascunho**.
+Upload concluído não significa liberação para testadores, aprovação ou
+publicação pública. Não repetir o upload sem consultar o estado atual.
+
+Screenshots de confirmação foram preservados fora do repositório, em
+`Documents/Codex/outputs/candy-publicacao/`. Esta retomada não alterou código,
+dependências, banco, permissões do AVA ou dados financeiros. A validação foi
+operacional no Expo e no Google Play; não substitui testes autenticados nem
+elimina as pendências de público infantil abaixo.
+
+- [Guia oficial da credencial para submissões](https://github.com/expo/fyi/blob/main/creating-google-service-account.md)
+- [Primeira submissão e status de rascunho](https://docs.expo.dev/submit/android/#first-time-submission)
 
 ### Revisão mínima antes de disponibilizar para crianças
 
