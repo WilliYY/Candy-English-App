@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Crypto from "expo-crypto";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -48,20 +48,21 @@ function PaymentEditor({
   const [amount, setAmount] = useState(() => formatMoneyInput(payment.amountCents));
   const [note, setNote] = useState(payment.note ?? "");
   const [operationId, setOperationId] = useState(() => Crypto.randomUUID());
+  const lastIntent = useRef<boolean | null>(null);
   const [validationError, setValidationError] = useState("");
   const [success, setSuccess] = useState("");
   const targetPaid = !payment.isPaid;
   const mutation = useMutation({
-    mutationFn: () => {
+    mutationFn: ({ isPaid, operationId: attemptId }: { isPaid: boolean; operationId: string }) => {
       const amountCents = parseBrlToCents(amount);
       if (!amountCents) throw new Error("Informe um valor valido.");
       return api.updateAdminFinancePayment(payment.id, {
         amountCents,
         confirmChange: true,
         expectedUpdatedAt: payment.updatedAt,
-        isPaid: targetPaid,
+        isPaid,
         note: note.trim() || null,
-        operationId,
+        operationId: attemptId,
       });
     },
     onSuccess: async (result) => {
@@ -78,13 +79,14 @@ function PaymentEditor({
   });
 
   function renewAttempt() {
+    lastIntent.current = null;
     setOperationId(Crypto.randomUUID());
     setSuccess("");
     setValidationError("");
     mutation.reset();
   }
 
-  function confirmUpdate() {
+  function confirmUpdate(isPaid: boolean) {
     const amountCents = parseBrlToCents(amount);
     if (!amountCents) {
       setValidationError("Informe um valor valido, como 350,00.");
@@ -92,11 +94,17 @@ function PaymentEditor({
     }
     setValidationError("");
     Alert.alert(
-      targetPaid ? "Confirmar recebimento?" : "Marcar como pendente?",
+      isPaid === payment.isPaid ? "Salvar alteracoes?" : isPaid ? "Confirmar recebimento?" : "Marcar como pendente?",
       `${payment.name} · ${formatMoney(amountCents)}. Esta alteracao tambem aparecera no site.`,
       [
         { style: "cancel", text: "Cancelar" },
-        { text: "Confirmar", onPress: () => mutation.mutate() },
+        { text: "Confirmar", onPress: () => {
+          const attemptId = lastIntent.current !== null && lastIntent.current !== isPaid
+            ? Crypto.randomUUID() : operationId;
+          lastIntent.current = isPaid;
+          setOperationId(attemptId);
+          mutation.mutate({ isPaid, operationId: attemptId });
+        } },
       ],
     );
   }
@@ -153,10 +161,19 @@ function PaymentEditor({
         ) : null}
         {success ? <Text style={styles.warning}>{success}</Text> : null}
         <Pressable
+          accessibilityLabel="Salvar alteracoes do pagamento"
+          accessibilityRole="button"
+          disabled={mutation.isPending}
+          onPress={() => confirmUpdate(payment.isPaid)}
+          style={[styles.submitButton, mutation.isPending ? styles.submitButtonDisabled : null]}
+        >
+          <Text style={styles.submitButtonText}>Salvar alteracoes</Text>
+        </Pressable>
+        <Pressable
           accessibilityLabel={targetPaid ? "Marcar pagamento como recebido" : "Marcar pagamento como pendente"}
           accessibilityRole="button"
           disabled={mutation.isPending}
-          onPress={confirmUpdate}
+          onPress={() => confirmUpdate(targetPaid)}
           style={[styles.submitButton, mutation.isPending ? styles.submitButtonDisabled : null]}
         >
           <Text style={styles.submitButtonText}>

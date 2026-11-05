@@ -82,6 +82,68 @@ const activity: MobileAdminFinanceActivity = {
 describe("Admin finance operation screens", () => {
   afterEach(() => jest.restoreAllMocks());
 
+  it.each([false, true])("saves amount and note without changing paid=%s", async (isPaid) => {
+    const current = { ...payment, isPaid, status: isPaid ? "PAID" as const : "PENDING" as const };
+    const updateAdminFinancePayment = jest.fn(async (_id, input) => ({
+      message: "Alteracoes salvas.", ok: true as const, replayed: false,
+      payment: { ...current, ...input },
+    }));
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    const view = await render(<AdminFinancePaymentScreen
+      client={{ getAdminFinancePayment: async () => current, updateAdminFinancePayment }}
+      onBack={jest.fn()} paymentId={current.id}
+    />, { wrapper: createWrapper() });
+    await view.findByText("Ana Candy");
+    await fireEvent.changeText(view.getByLabelText("Valor do pagamento"), "375,50");
+    await fireEvent.changeText(view.getByLabelText("Observacao do pagamento"), "Ajuste interno");
+    await fireEvent.press(view.getByLabelText("Salvar alteracoes do pagamento"));
+    expect(updateAdminFinancePayment).not.toHaveBeenCalled();
+    await alert.mock.calls.at(-1)?.[2]?.find((button) => button.text === "Confirmar")?.onPress?.();
+    await waitFor(() => expect(updateAdminFinancePayment).toHaveBeenCalledWith(current.id, {
+      amountCents: 37_550, note: "Ajuste interno", isPaid,
+      confirmChange: true, expectedUpdatedAt: current.updatedAt,
+      operationId: "11111111-1111-4111-8111-111111111111",
+    }));
+  });
+
+  it("requires explicit confirmation to cancel a received payment", async () => {
+    const current = { ...payment, isPaid: true, status: "PAID" as const };
+    const updateAdminFinancePayment = jest.fn(async () => ({
+      message: "Pendente.", ok: true as const, replayed: false, payment,
+    }));
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    const view = await render(<AdminFinancePaymentScreen
+      client={{ getAdminFinancePayment: async () => current, updateAdminFinancePayment }}
+      onBack={jest.fn()} paymentId={current.id}
+    />, { wrapper: createWrapper() });
+    await view.findByText("Ana Candy");
+    await fireEvent.press(view.getByLabelText("Marcar pagamento como pendente"));
+    expect(updateAdminFinancePayment).not.toHaveBeenCalled();
+    await alert.mock.calls.at(-1)?.[2]?.find((button) => button.text === "Confirmar")?.onPress?.();
+    await waitFor(() => expect(updateAdminFinancePayment).toHaveBeenCalledWith(current.id,
+      expect.objectContaining({ isPaid: false, expectedUpdatedAt: current.updatedAt, confirmChange: true })));
+  });
+
+  it("keeps the operation and version when retrying an unchanged save", async () => {
+    const updateAdminFinancePayment = jest.fn()
+      .mockRejectedValueOnce(new Error("Conflito: atualize os dados."))
+      .mockResolvedValue({ message: "Salvo.", ok: true, replayed: true, payment });
+    jest.spyOn(Alert, "alert").mockImplementation((_title, _message, buttons) => {
+      buttons?.find((button) => button.text === "Confirmar")?.onPress?.();
+    });
+    const view = await render(<AdminFinancePaymentScreen
+      client={{ getAdminFinancePayment: async () => payment, updateAdminFinancePayment }}
+      onBack={jest.fn()} paymentId={payment.id}
+    />, { wrapper: createWrapper() });
+    await view.findByText("Ana Candy");
+    await fireEvent.press(view.getByLabelText("Salvar alteracoes do pagamento"));
+    await view.findByText("Conflito: atualize os dados.");
+    await fireEvent.press(view.getByLabelText("Salvar alteracoes do pagamento"));
+    await waitFor(() => expect(updateAdminFinancePayment).toHaveBeenCalledTimes(2));
+    expect(updateAdminFinancePayment.mock.calls[0]).toEqual(updateAdminFinancePayment.mock.calls[1]);
+    expect(updateAdminFinancePayment.mock.calls[0]?.[1]).toMatchObject({ isPaid: false, expectedUpdatedAt: payment.updatedAt });
+  });
+
   it("distinguishes the full period total from the recent expenses shown", async () => {
     const getAdminFinanceActivity = jest.fn(async () => ({
       ...activity,
