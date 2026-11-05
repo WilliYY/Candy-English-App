@@ -1,5 +1,56 @@
 # Preparação para publicação Android
 
+## Atualização corretiva e teste interno — 05/11/2026
+
+As quatro correções coordenadas entre site e app foram concluídas. No app,
+salvar dados de uma mensalidade conserva o status atual; confirmar/cancelar
+pagamento exige a ação específica. Sessões revogadas agora removem o usuário,
+o cache de consultas e os arquivos protegidos locais. Falha de rede ou
+manutenção (HTTP 503) preserva as credenciais. O backend bloqueia operações
+de alunos durante manutenção e rejeita alterações financeiras desatualizadas.
+
+- Código nativo: `32a73c9222878f1b797d16426ef10f2387eaa906`.
+- Backend publicado: `a3d26eac92896417f741d48e8f73c3dbc791b241`.
+- 39 suítes / 128 testes nativos aprovados; typecheck e lint aprovados.
+- Backend: 359 testes, builds Docker e seis smokes isolados/publicados aprovados.
+- [Teste real em emulador Android 35](https://github.com/WilliYY/Candy-English-App/actions/runs/41960813001)
+  aprovado: checksum, assinatura, pacote, instalação, abertura e navegação até
+  o login nativo, sem usar conta real nem alterar registros financeiros.
+
+O APK de prévia e o AAB de produção usam o mesmo commit nativo. O emulador
+validou o APK, não a instalação pela Play Store nem o aparelho físico.
+
+| Artefato | Build EAS | Versão/código | SHA-256 |
+| --- | --- | --- | --- |
+| APK preview | `3875d596-5e2f-441e-a79d-06e44a828b1b` | `0.1.0 / 2` | `724a600c237c7eb337aaa4398554fb96d1ad31b72014dd1c27262d84e837ece4` |
+| AAB production | `c2fe11df-3d7d-4529-ad31-0a2466e6f546` | `0.1.0 / 3` | `4c24ece84785d6ffd75d8721fefd0e4a415072be70718e11b6a002d9d0d9d245` |
+
+O [envio EAS](https://expo.dev/accounts/willmils-team/projects/candy-english-app/submissions/a9eefc4a-2c3e-47aa-93e9-8eff0f770844)
+concluiu com sucesso inicialmente em `internal/draft`, conforme o perfil
+existente. Depois, a integração oficial já autorizada conferiu o SHA-256 do
+AAB no Google Play e liberou somente o código `3` na faixa `internal`.
+Uma nova edição de leitura confirmou `status=completed` em
+`2026-11-05T03:34:01.107Z`. As três outras faixas permaneceram iguais; nenhuma
+requisição de alteração de testadores foi enviada. A resposta dos ajustes de
+testadores da API permaneceu igual, mas não expõe a lista de e-mails do Console.
+O commit usou `changesInReviewBehavior=ERROR_IF_IN_REVIEW`, evitando cancelar
+uma revisão existente. A credencial existente foi usada sem expor valores,
+criar chaves, ampliar permissões ou alterar a configuração permanente do EAS.
+
+O [link do teste interno](https://play.google.com/apps/internaltest/4701748008850736251)
+permanece o mesmo. O responsável deve abrir com a conta já inscrita e atualizar
+pela Play Store; a instalação no S23 Ultra ainda não foi confirmada. Esta
+operação não publica o app ao público, não inicia teste fechado nem resolve
+as pendências de crianças, ficha, países ou status comercial descritas abaixo.
+
+Artefatos e recibo sanitizado foram preservados fora do Git em
+`D:\Codex-outputs\candy-english\2026-11-05-correcoes\`:
+`Candy-English-0.1.0-fixes-3875d596.apk`,
+`Candy-English-0.1.0-code3-c2fe11df.aab` e `play-internal-code3.json`.
+
+Referências oficiais: [atualizar faixa](https://developers.google.com/android-publisher/api-ref/rest/v3/edits.tracks/update)
+e [commit sem cancelar revisão existente](https://developers.google.com/android-publisher/api-ref/rest/v3/edits/commit).
+
 ## Objetivo e limites
 
 Preparar o Candy English para testes e posterior publicação na Google Play,
