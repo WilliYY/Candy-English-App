@@ -24,9 +24,9 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/candy-evidence"
           curl --fail --location --proto '=https' --tlsv1.2 --max-time 120 \
-            'https://expo.dev/artifacts/eas/eXvICfMIr5GhfL0pYzCHAx_AF_z_ZkkqvrRVMeHw5i4.apk' \
+            'https://expo.dev/artifacts/eas/uV8ZkfbNLLUTl1BXTrt73gVpyXlnU3e96LJ1iIVFdB0.apk' \
             --output "$RUNNER_TEMP/candy.apk"
-          echo "0f01ecf6f8d3b29bb085a0e456bb49937e04895971b4e0fc6cd99eb2d6cd6679  $RUNNER_TEMP/candy.apk" | sha256sum --check
+          echo "724a600c237c7eb337aaa4398554fb96d1ad31b72014dd1c27262d84e837ece4  $RUNNER_TEMP/candy.apk" | sha256sum --check
           tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           "$tools/apksigner" verify --verbose --print-certs "$RUNNER_TEMP/candy.apk" > "$RUNNER_TEMP/candy-evidence/signature.txt"
           "$tools/aapt" dump badging "$RUNNER_TEMP/candy.apk" > "$RUNNER_TEMP/candy-evidence/manifest.txt"
