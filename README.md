@@ -49,6 +49,10 @@ gastos e mostra o histórico recente. Escritas exigem confirmação explícita,
 versão atual e operação idempotente, sincronizam com o site e não enviam CPF ou
 endereço ao celular. O módulo continua sendo controle interno, sem cobrança
 online.
+No detalhe, `Salvar alteracoes` preserva a situação atual; confirmar recebimento
+ou marcar como pendente são ações separadas, também confirmadas. Repetir a mesma
+tentativa conserva a operação idempotente; trocar a intenção ou editar os dados
+inicia outra operação, mantendo a verificação de versão.
 O ADMIN também possui agenda mensal por unidade e fila diária pesquisável,
 com contagens de aulas, presenças, faltas e reposições, atualização a cada 15
 segundos e cartões operacionais com horário, telefone e observações internas.

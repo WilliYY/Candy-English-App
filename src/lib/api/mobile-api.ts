@@ -7,11 +7,20 @@ import { clearProtectedContractCache } from "@/lib/files/protected-contract-cach
 import { clearProtectedLearningAssetCache } from "@/lib/files/protected-learning-asset-cache";
 
 let mobileApi: ReturnType<typeof createMobileApiClient> | null = null;
+const sessionInvalidatedListeners = new Set<() => void>();
+
+export function subscribeSessionInvalidated(listener: () => void) {
+  sessionInvalidatedListeners.add(listener);
+  return () => { sessionInvalidatedListeners.delete(listener); };
+}
 
 export function getMobileApi() {
   mobileApi ??= createMobileApiClient({
     baseUrl: getApiBaseUrl(),
     getDeviceIdentity,
+    onSessionInvalidated: () => {
+      sessionInvalidatedListeners.forEach((listener) => listener());
+    },
     onSessionCleared: async () => {
       await Promise.allSettled([
         clearProtectedContractCache(),

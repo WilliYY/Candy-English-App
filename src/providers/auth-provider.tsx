@@ -6,15 +6,13 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
-import { getMobileApi } from "@/lib/api/mobile-api";
+import { getMobileApi, subscribeSessionInvalidated } from "@/lib/api/mobile-api";
 import type { AuthUser } from "@/lib/auth/auth-session";
 import { secureSessionStore } from "@/lib/auth/secure-session-store";
-import { clearAvatarUploadTemps } from "@/lib/files/avatar-upload";
-import { clearProtectedContractCache } from "@/lib/files/protected-contract-cache";
-import { clearProtectedLearningAssetCache } from "@/lib/files/protected-learning-asset-cache";
 
 type AuthStatus = "loading" | "anonymous" | "authenticated";
 
@@ -32,16 +30,25 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<AuthUser | null>(null);
+  const authGeneration = useRef(0);
 
   useEffect(() => {
     let active = true;
+    const generation = authGeneration.current;
+    const unsubscribe = subscribeSessionInvalidated(() => {
+      authGeneration.current += 1;
+      queryClient.clear();
+      setUser(null);
+      setStatus("anonymous");
+    });
+    const isCurrent = () => active && generation === authGeneration.current;
 
     async function restore() {
       try {
         const session = await secureSessionStore.get();
 
         if (!session) {
-          if (active) {
+          if (isCurrent()) {
             setStatus("anonymous");
           }
           return;
@@ -49,20 +56,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
         const restoredUser = await getMobileApi().getMe();
 
-        if (active) {
+        if (isCurrent()) {
           setUser(restoredUser);
           setStatus("authenticated");
         }
       } catch {
-        await Promise.allSettled([
-          secureSessionStore.clear(),
-          clearAvatarUploadTemps(),
-          clearProtectedContractCache(),
-          clearProtectedLearningAssetCache(),
-        ]);
-        queryClient.clear();
-
-        if (active) {
+        // Network/maintenance failures do not revoke persisted credentials.
+        if (isCurrent()) {
+          queryClient.clear();
           setUser(null);
           setStatus("anonymous");
         }
@@ -73,28 +74,39 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     return () => {
       active = false;
+      unsubscribe();
     };
   }, [queryClient]);
 
   const signIn = useCallback(async (email: string, password: string) => {
+    const generation = ++authGeneration.current;
     const authenticatedUser = await getMobileApi().signIn(email, password);
+    if (generation !== authGeneration.current) return;
+    queryClient.clear();
     setUser(authenticatedUser);
     setStatus("authenticated");
-  }, []);
+  }, [queryClient]);
 
   const refreshUser = useCallback(async () => {
+    const generation = authGeneration.current;
     const refreshedUser = await getMobileApi().getMe();
-    setUser(refreshedUser);
+    if (generation === authGeneration.current) setUser(refreshedUser);
     return refreshedUser;
   }, []);
 
   const signOut = useCallback(async () => {
+    const generation = ++authGeneration.current;
+    queryClient.clear();
+    setUser(null);
+    setStatus("anonymous");
     try {
       await getMobileApi().signOut();
     } finally {
-      queryClient.clear();
-      setUser(null);
-      setStatus("anonymous");
+      if (generation === authGeneration.current) {
+        queryClient.clear();
+        setUser(null);
+        setStatus("anonymous");
+      }
     }
   }, [queryClient]);
 

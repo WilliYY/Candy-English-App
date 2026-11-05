@@ -209,6 +209,7 @@ type MobileApiClientOptions = {
   fetcher?: Fetcher;
   getDeviceIdentity: () => Promise<DeviceIdentity>;
   onSessionCleared?: () => Promise<void>;
+  onSessionInvalidated?: () => void;
   sessionStore: AuthSessionStore;
   timeoutMs?: number;
 };
@@ -1223,15 +1224,42 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
   const createRequestId = options.createRequestId ?? defaultRequestId;
   const timeoutMs = options.timeoutMs ?? 15_000;
   let refreshPromise: Promise<AuthSession> | null = null;
+  let sessionGeneration = 0;
+  let cleanupPromise: Promise<void> = Promise.resolve();
+  let sessionWritePromise: Promise<void> = Promise.resolve();
 
-  async function clearLocalSession() {
-    await options.sessionStore.clear();
-
-    try {
-      await options.onSessionCleared?.();
-    } catch {
-      // Session cleanup must not be blocked by an unavailable cache directory.
+  function assertCurrentSession(generation: number) {
+    if (generation !== sessionGeneration) {
+      throw new ApiError("SESSION_EXPIRED", "Entre novamente para continuar.", 401);
     }
+  }
+
+  async function saveSession(session: AuthSession, generation: number) {
+    const pending = sessionWritePromise.catch(() => undefined).then(async () => {
+      assertCurrentSession(generation);
+      await options.sessionStore.save(session);
+    });
+    sessionWritePromise = pending;
+    await pending;
+    assertCurrentSession(generation);
+  }
+
+  async function clearLocalSession(generation = sessionGeneration) {
+    if (generation !== sessionGeneration) return;
+    sessionGeneration += 1;
+    refreshPromise = null;
+    options.onSessionInvalidated?.();
+    const previousCleanup = cleanupPromise;
+    cleanupPromise = (async () => {
+      await previousCleanup.catch(() => undefined);
+      try {
+        await sessionWritePromise.catch(() => undefined);
+        await options.sessionStore.clear();
+      } finally {
+        await options.onSessionCleared?.().catch(() => undefined);
+      }
+    })();
+    await cleanupPromise;
   }
 
   async function readError(response: Response) {
@@ -1297,10 +1325,12 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
     }
   }
 
-  async function rotateSession() {
+  async function rotateSession(generation: number) {
     const session = await options.sessionStore.get();
+    assertCurrentSession(generation);
 
     if (!session) {
+      await clearLocalSession(generation);
       throw new ApiError(
         "SESSION_EXPIRED",
         "Entre novamente para continuar.",
@@ -1316,9 +1346,13 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }),
       method: "POST",
     });
+    assertCurrentSession(generation);
 
     if (!response.ok) {
-      await clearLocalSession();
+      if (response.status !== 401 && response.status !== 403) {
+        throw await readError(response);
+      }
+      await clearLocalSession(generation);
       throw new ApiError(
         "SESSION_EXPIRED",
         "Entre novamente para continuar.",
@@ -1330,7 +1364,7 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
     const parsed = successSessionSchema.safeParse(await response.json());
 
     if (!parsed.success) {
-      await clearLocalSession();
+      await clearLocalSession(generation);
       throw new ApiError(
         "INVALID_RESPONSE",
         "O servidor retornou uma resposta inválida.",
@@ -1339,16 +1373,19 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
     }
 
     const nextSession = toAuthSession(parsed.data);
-    await options.sessionStore.save(nextSession);
+    assertCurrentSession(generation);
+    await saveSession(nextSession, generation);
 
     return nextSession;
   }
 
-  function refreshSessionOnce() {
+  function refreshSessionOnce(generation: number) {
+    assertCurrentSession(generation);
     if (!refreshPromise) {
-      refreshPromise = rotateSession().finally(() => {
-        refreshPromise = null;
+      const pending = rotateSession(generation).finally(() => {
+        if (refreshPromise === pending) refreshPromise = null;
       });
+      refreshPromise = pending;
     }
 
     return refreshPromise;
@@ -1359,9 +1396,13 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
     init: RequestInit,
     requestTimeoutMs = timeoutMs,
   ) {
+    const generation = sessionGeneration;
+    await cleanupPromise;
     let session = await options.sessionStore.get();
+    assertCurrentSession(generation);
 
     if (!session) {
+      await clearLocalSession(generation);
       throw new ApiError(
         "SESSION_EXPIRED",
         "Entre novamente para continuar.",
@@ -1370,7 +1411,7 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
     }
 
     if (!session.tokens.accessToken) {
-      session = await refreshSessionOnce();
+      session = await refreshSessionOnce(generation);
     }
 
     let response = await request(
@@ -1379,15 +1420,18 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       session.tokens.accessToken,
       requestTimeoutMs,
     );
+    assertCurrentSession(generation);
 
     if (response.status === 401) {
-      const refreshed = await refreshSessionOnce();
+      const refreshed = await refreshSessionOnce(generation);
       response = await request(
         path,
         init,
         refreshed.tokens.accessToken,
         requestTimeoutMs,
       );
+      assertCurrentSession(generation);
+      if (response.status === 401) await clearLocalSession(generation);
     }
 
     if (!response.ok) {
@@ -1399,6 +1443,7 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
 
   return {
     async getMe(): Promise<AuthUser> {
+      const generation = sessionGeneration;
       const response = await authenticatedRequest("/auth/me", {
         method: "GET",
       });
@@ -1413,12 +1458,13 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       const current = await options.sessionStore.get();
+      assertCurrentSession(generation);
 
       if (current) {
-        await options.sessionStore.save({
+        await saveSession({
           ...current,
           user: parsed.data.user,
-        });
+        }, generation);
       }
 
       return parsed.data.user;
@@ -3143,6 +3189,9 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
     },
 
     async signIn(email: string, password: string) {
+      const generation = ++sessionGeneration;
+      refreshPromise = null;
+      await cleanupPromise;
       const device = await options.getDeviceIdentity();
       const response = await request("/auth/login", {
         body: JSON.stringify({
@@ -3168,12 +3217,14 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
       }
 
       const session = toAuthSession(parsed.data);
-      await options.sessionStore.save(session);
+      assertCurrentSession(generation);
+      await saveSession(session, generation);
 
       return session.user;
     },
 
     async signOut() {
+      const generation = sessionGeneration;
       const session = await options.sessionStore.get();
 
       try {
@@ -3185,7 +3236,7 @@ export function createMobileApiClient(options: MobileApiClientOptions) {
           );
         }
       } finally {
-        await clearLocalSession();
+        await clearLocalSession(generation);
       }
     },
   };
